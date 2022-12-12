@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
-// @version      0.0.1
+// @version      0.0.2
 // @description  Simplify Street Geometry, looks like fork
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -286,12 +286,14 @@
         if (segmentsLength[i] < this.settings.get('simplifyShort')) {
           this.log('found too short segment: ' + segmentsLength[i] + 'm')
           removeNodes.push(i+1)
+          i++ // skip next one
         } else if (segmentsLength[i] + segmentsLength[i+1] < this.settings.get('simplifyTwoShort')) {
           this.log(
             'found node with short segments: ' + segmentsLength[i] + ' + ' + segmentsLength[i+1] +' = '+
             (segmentsLength[i] + segmentsLength[i+1]) + 'm'
           )
           removeNodes.push(i+1)
+          i++ // skip next one
         }
       }
 
