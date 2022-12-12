@@ -5,7 +5,7 @@
 // @license      MIT License
 // @author       Anton Shevchuk
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
-// @supportURL   https://github.com/AntonShevchuk/wme-template/issues
+// @supportURL   https://github.com/AntonShevchuk/wme-e85/issues
 // @match        https://*.waze.com/editor*
 // @match        https://*.waze.com/*/editor*
 // @exclude      https://*.waze.com/user/editor*
@@ -533,10 +533,11 @@
   function getDeltaDirect (A, B) {
     let d = 0.0
 
-    if (A < B)
+    if (A < B) {
       d = 1.0
-    else if (A > B)
+    } else if (A > B) {
       d = -1.0
+    }
 
     return d
   }
