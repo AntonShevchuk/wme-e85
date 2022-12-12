@@ -10,8 +10,8 @@ Simplify Street Geometry in one click.
 
 ![](simplify.gif)
 
-Removes segment parts if it shorter than 3 meters (default value)  
-Removes node if segment parts shorter than 40 meters  (default value)
+Removes segment parts if it shorter than 5 meters (default value)  
+Removes node if segment parts shorter than 15 meters (default value)
 
 ### Straighten
 

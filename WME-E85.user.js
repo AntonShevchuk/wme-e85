@@ -117,8 +117,8 @@
 
   // Default settings
   const SETTINGS = {
-    simplifyShort: 3,
-    simplifyTwoShort: 40
+    simplifyShort: 5,
+    simplifyTwoShort: 15
   }
 
   let WazeActionUpdateSegmentGeometry
@@ -285,14 +285,14 @@
       for (let i = 0; i < segmentsLength.length - 1; i++) {
         if (segmentsLength[i] < this.settings.get('simplifyShort')) {
           this.log('found too short segment: ' + segmentsLength[i] + 'm')
-          removeNodes.push(i+1)
+          removeNodes.push(i + 1)
           i++ // skip next one
-        } else if (segmentsLength[i] + segmentsLength[i+1] < this.settings.get('simplifyTwoShort')) {
+        } else if (segmentsLength[i] + segmentsLength[i + 1] < this.settings.get('simplifyTwoShort')) {
           this.log(
-            'found node with short segments: ' + segmentsLength[i] + ' + ' + segmentsLength[i+1] +' = '+
-            (segmentsLength[i] + segmentsLength[i+1]) + 'm'
+            'found node with short segments: ' + segmentsLength[i] + ' + ' + segmentsLength[i + 1] + ' = ' +
+            (segmentsLength[i] + segmentsLength[i + 1]) + 'm'
           )
-          removeNodes.push(i+1)
+          removeNodes.push(i + 1)
           i++ // skip next one
         }
       }
@@ -316,7 +316,7 @@
      * @param {Array} models
      * @return {void}
      */
-    simplifyStreetGeometry(models) {
+    simplifyStreetGeometry (models) {
       for (let i = 0; i < models.length; i++) {
         this.simplifySegmentGeometry(models[i])
       }
@@ -333,63 +333,65 @@
      */
     straightenStreetGeometry (models) {
       this.log('simplify street geometry')
+      this.log('calculating the formula for the straight line')
+
       let T1, T2,
         t,
         A = 0.0,
         B = 0.0,
-        C = 0.0,
-        D = 0.0
-
-      // определим линию выравнивания
-      this.log('calculating the formula for the line')
+        C = 0.0
 
       for (let i = 0; i < models.length; i++) {
         let segment = models[i]
 
         let geometry = segment.geometry
 
+        if (geometry.components.length < 2) {
+          continue
+        }
+
         // определяем формулу наклонной прямой
-        if (geometry.components.length > 1) {
-          let A1 = geometry.components[0].clone(),
-            A2 = geometry.components[geometry.components.length - 1].clone()
+        let A1 = geometry.components[0].clone(),
+          A2 = geometry.components[geometry.components.length - 1].clone()
 
-          let dX = getDeltaDirect(A1.x, A2.x)
-          let dY = getDeltaDirect(A1.y, A2.y)
+        let dX = getDeltaDirect(A1.x, A2.x)
+        let dY = getDeltaDirect(A1.y, A2.y)
 
-          let tX = i > 0 ? getDeltaDirect(T1.x, T2.x) : 0
-          let tY = i > 0 ? getDeltaDirect(T1.y, T2.y) : 0
+        // looks very strange
+        let tX = i > 0 ? getDeltaDirect(T1.x, T2.x) : 0
+        let tY = i > 0 ? getDeltaDirect(T1.y, T2.y) : 0
 
-          this.log('vector of the line - tX=' + tX + ', tY=' + tY)
-          this.log('segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
+        this.log('vector of the line - tX=' + tX + ', tY=' + tY)
+        this.log('segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
 
-          if (dX < 0) {
-            t = A1.x
-            A1.x = A2.x
-            A2.x = t
+        if (dX < 0) {
+          t = A1.x
+          A1.x = A2.x
+          A2.x = t
 
-            t = A1.y
-            A1.y = A2.y
-            A2.y = t
+          t = A1.y
+          A1.y = A2.y
+          A2.y = t
 
-            dX = getDeltaDirect(A1.x, A2.x)
-            dY = getDeltaDirect(A1.y, A2.y)
+          dX = getDeltaDirect(A1.x, A2.x)
+          dY = getDeltaDirect(A1.y, A2.y)
 
-            this.log('rotate segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
+          this.log('rotate segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
+        }
+
+        // looks very strange
+        if (i === 0) {
+          T1 = A1.clone()
+          T2 = A2.clone()
+        } else {
+          if (A1.x < T1.x) {
+            T1.x = A1.x
+            T1.y = A1.y
           }
 
-          if (i === 0) {
-            T1 = A1.clone()
-            T2 = A2.clone()
-          } else {
-            if (A1.x < T1.x) {
-              T1.x = A1.x
-              T1.y = A1.y
-            }
-
-            if (A2.x > T2.x) {
-              T2.x = A2.x
-              T2.y = A2.y
-            }
+          if (A2.x > T2.x) {
+            T2.x = A2.x
+            T2.y = A2.y
           }
 
           this.log('calculated straight line (' + T1.x + '; ' + T1.y + ') - (' + T2.x + '; ' + T2.y + ')')
@@ -444,7 +446,7 @@
         seg2Attrs = seg2.attributes
       let commonNodeID
 
-      if (seg1.type != 'segment' || seg2.type != 'segment') {
+      if (seg1.type !== 'segment' || seg2.type !== 'segment') {
         this.log('only segments must be selected')
         return
       }
@@ -465,7 +467,7 @@
       node = W.model.nodes.getObjectById(commonNodeID)
 
       // ID другого узла второго сегмента. От него будем строить перпендикуляр
-      let otherNodeID = commonNodeID == seg2Attrs.fromNodeID ? seg2Attrs.toNodeID : seg2Attrs.fromNodeID
+      let otherNodeID = commonNodeID === seg2Attrs.fromNodeID ? seg2Attrs.toNodeID : seg2Attrs.fromNodeID
       let otherNode = W.model.nodes.getObjectById(otherNodeID)
 
       // упростим оба сегмента
