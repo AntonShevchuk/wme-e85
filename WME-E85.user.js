@@ -48,7 +48,7 @@
       settings: {
         title: 'Settings',
         description: 'Settings for simplify function',
-        simplifyShort: 'Remove segment shorter than',
+        simplifyShort: 'Simplify segment shorter than',
         simplifyTwoShort: 'Join segments shorter than',
       },
     },
@@ -63,7 +63,7 @@
       settings: {
         title: 'Налаштування',
         description: 'Для спрощення сегментів будуть враховані наступні параметри',
-        simplifyShort: 'Видаляти сегменти менші ніж',
+        simplifyShort: 'Спрощувати сегменти менші ніж',
         simplifyTwoShort: 'Об’єднувати сегменти меньші ніж',
       },
     },
@@ -85,6 +85,9 @@
   }
 
   const STYLE =
+    'button.e85.e85-A { background-color: #0f9; margin-right: 2px }' +
+    'button.e85.e85-B { background-color: #09f; color: #fff }' +
+    'button.e85.e85-C { background-color: #f99; margin-left: 2px }' +
     '.e85 legend { cursor:pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }' +
     '.e85 fieldset { border: 1px solid #ddd; padding: 4px; }' +
     '.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; }' +
