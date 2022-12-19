@@ -14,7 +14,7 @@
 // @require      https://greasyfork.org/scripts/389765-common-utils/code/CommonUtils.js?version=1090053
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1128320
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
-// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1101617
+// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
 // @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1128560
 // ==/UserScript==
 
@@ -126,11 +126,6 @@
   let WazeActionAddNode
 
   class E85 extends WMEBase {
-    constructor (name, settings) {
-      super(name)
-      this.settings = new Settings(name, settings)
-    }
-
     /**
      * Initial UI elements
      * @param {Object} buttons
@@ -174,15 +169,6 @@
 
       // Inject custom HTML to container in the WME interface
       this.tab.inject()
-    }
-
-    /**
-     * Handler for window `beforeunload` event
-     * @param {jQuery.Event} event
-     * @return {Null}
-     */
-    onBeforeUnload (event) {
-      this.settings.save()
     }
 
     /**
