@@ -15,7 +15,7 @@
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1128320
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
 // @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
-// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1128560
+// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1132279
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -90,7 +90,7 @@
     'button.e85.e85-C { background-color: #f99; margin-left: 2px }' +
     '.e85 legend { cursor:pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }' +
     '.e85 fieldset { border: 1px solid #ddd; padding: 8px; }' +
-    '.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; }' +
+    '.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; font-size: 13px; }' +
     '.e85 fieldset.e85 div.controls input[type="number"] { float:right; wight: 32px }' +
     'p.e85-info { border-top: 1px solid #ccc; color: #777; font-size: x-small; margin-top: 15px; padding-top: 10px; text-align: center; }'
 
@@ -137,9 +137,8 @@
       /** @type {WMEUIHelperTab} */
       this.tab = this.helper.createTab(
         I18n.t(this.name).title,
-        I18n.t(this.name).description,
         {
-          'icon': '<i class="w-icon panel-header-component-icon w-icon-route"></i>'
+          'icon': 'route'
         }
       )
 
@@ -151,7 +150,6 @@
         if (settings.hasOwnProperty(item)) {
           fieldset.addNumber(
             'settings-' + item,
-            I18n.t(NAME).settings[item],
             I18n.t(NAME).settings[item],
             event => this.settings.set([item], event.target.value),
             this.settings.get(item),
