@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
-// @version      0.1.0
+// @version      0.1.1
 // @description  Simplify Street Geometry, looks like fork
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -15,7 +15,7 @@
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1128320
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
 // @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
-// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1132279
+// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1134661
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -47,9 +47,10 @@
       },
       settings: {
         title: 'Settings',
-        description: 'Settings for simplify function',
-        simplifyShort: 'Simplify segment shorter than',
-        simplifyTwoShort: 'Join segments shorter than',
+        description: 'Settings for simplifying segments',
+        simplifyShort: 'Remove a fragment shorter than',
+        simplifyAngle: 'If the angle is bigger than',
+        simplifyTwoShort: 'and fragments shorter than',
       },
     },
     'uk': {
@@ -63,8 +64,9 @@
       settings: {
         title: 'Налаштування',
         description: 'Для спрощення сегментів будуть враховані наступні параметри',
-        simplifyShort: 'Спрощувати сегменти менші ніж',
-        simplifyTwoShort: 'Об’єднувати сегменти меньші ніж',
+        simplifyShort: 'Видаляти фрагменти менші ніж',
+        simplifyAngle: 'Або якщо кут більше ніж',
+        simplifyTwoShort: 'та фрагменти меньші ніж',
       },
     },
     'ru': {
@@ -78,8 +80,9 @@
       settings: {
         title: 'Настройки',
         description: 'Параметры для упрощения геометрии сегмента',
-        simplifyShort: 'Если сегмент короче, чем',
-        simplifyTwoShort: 'Если сегменты меньше, чем',
+        simplifyShort: 'Если фрагмент короче, чем',
+        simplifyAngle: 'Или угол больше чем',
+        simplifyTwoShort: 'и фрагменты меньше, чем',
       },
     }
   }
@@ -88,6 +91,7 @@
     'button.e85.e85-A { background-color: #0f9; margin-right: 2px }' +
     'button.e85.e85-B { background-color: #09f; color: #fff }' +
     'button.e85.e85-C { background-color: #f99; margin-left: 2px }' +
+    'button.e85.e85-A:disabled, button.e85.e85-B:disabled { background-color: #ccc }' +
     '.e85 legend { cursor:pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }' +
     '.e85 fieldset { border: 1px solid #ddd; padding: 8px; }' +
     '.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; font-size: 13px; }' +
@@ -118,7 +122,8 @@
   // Default settings
   const SETTINGS = {
     simplifyShort: 5,
-    simplifyTwoShort: 15
+    simplifyAngle: 179,
+    simplifyTwoShort: 25,
   }
 
   let WazeActionUpdateSegmentGeometry
@@ -153,8 +158,8 @@
             I18n.t(NAME).settings[item],
             event => this.settings.set([item], event.target.value),
             this.settings.get(item),
-            1,
-            100,
+            (item === 'simplifyAngle') ? 150 : 0,
+            (item === 'simplifyAngle') ? 180 : 200,
             1
           )
         }
@@ -180,7 +185,7 @@
       this.log('Selected one segment')
 
       let panel = this.helper.createPanel(I18n.t(this.name).title)
-      panel.addButton(
+      let simplifyButton = panel.addButton(
         'A',
         BUTTONS.A.title,
         BUTTONS.A.description,
@@ -188,14 +193,17 @@
         BUTTONS.A.shortcut
       )
 
-      panel.addButton(
+      let straightenButton = panel.addButton(
         'B',
         BUTTONS.B.title,
         BUTTONS.B.description,
         () => this.straightenSegmentGeometry(model),
         BUTTONS.B.shortcut
       )
-
+      if (model.geometry.components.length < 3) {
+        simplifyButton.html().disabled = true
+        straightenButton.html().disabled = true
+      }
       element.prepend(panel.html())
     }
 
@@ -210,14 +218,15 @@
       this.log('Selected some segments')
 
       let panel = this.helper.createPanel(I18n.t(this.name).title)
-      panel.addButton(
+      let simplifyButton = panel.addButton(
         'A',
         BUTTONS.A.title,
         BUTTONS.A.description,
         () => this.simplifyStreetGeometry(models),
         BUTTONS.A.shortcut
       )
-      panel.addButton(
+
+      let straightenButton = panel.addButton(
         'B',
         BUTTONS.B.title,
         BUTTONS.B.description,
@@ -225,12 +234,18 @@
         BUTTONS.B.shortcut
       )
 
+      let modelWithComponents = models.filter(model => model.geometry.components.length > 2)
+
+      if (modelWithComponents.length === 0) {
+        simplifyButton.html().disabled = true
+        straightenButton.html().disabled = true
+      }
       if (models.length === 2) {
         panel.addButton(
           'C',
           BUTTONS.C.title,
           BUTTONS.C.description,
-          () => this.orthogonalizeStreetGeometry(models),
+          () => this.orthogonalizeStreetGeometry(models[0], models[1]),
           BUTTONS.C.shortcut
         )
       }
@@ -244,40 +259,55 @@
      * @return {void}
      */
     simplifySegmentGeometry (model) {
-      this.log(
-        'try to simplify segment geometry: remove segments shorten than ' + this.settings.get('simplifyShort') + 'm ' +
-        'and join segments shorten than ' + this.settings.get('simplifyTwoShort') + 'm'
-      )
       if (model.geometry.components.length < 3) {
         return
       }
 
-      // calculate every segment length
-      let segmentsLength = []
-      for (let i = 0; i < model.geometry.components.length - 1; i++) {
-        let nodeStart = model.geometry.components[i],
-          nodeEnd = model.geometry.components[i + 1]
+      this.log('check geometry of the segment with ID ' + model.getID())
+      let nodes = []
 
-        let line = new OpenLayers.Geometry.LineString([nodeStart, nodeEnd])
-        segmentsLength.push(Math.round(line.getGeodesicLength('EPSG:900913')))
+      // calculate angles for every inside point
+      for (let i = 0; i < model.geometry.components.length - 2; i++) {
+        let nodeStart = model.geometry.components[i],
+          nodeCenter = model.geometry.components[i + 1],
+          nodeEnd = model.geometry.components[i + 2]
+
+        nodes[i] = {
+          angle: Math.round(this.findAngle(nodeStart, nodeCenter, nodeEnd)),
+          start: Math.round(this.findLength(nodeStart, nodeCenter)),
+          end: Math.round(this.findLength(nodeCenter, nodeEnd)),
+        }
+        this.log('point ' + (i+1) + ' : ' + nodes[i].angle + '°, ' + nodes[i].start + 'm, ' + nodes[i].end + 'm')
       }
 
-      this.log('length of the segments: ' + segmentsLength.join(', '))
-
-      // find nodes with short segments around
       let removeNodes = []
-      for (let i = 0; i < segmentsLength.length - 1; i++) {
-        if (segmentsLength[i] < this.settings.get('simplifyShort')) {
-          this.log('found too short segment: ' + segmentsLength[i] + 'm')
-          removeNodes.push(i + 1)
-          i++ // skip next one
-        } else if (segmentsLength[i] + segmentsLength[i + 1] < this.settings.get('simplifyTwoShort')) {
+
+      for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i]
+
+        // mark to remove a node with short START segment
+        if (node.start < this.settings.get('simplifyShort')) {
+          this.log('found too short segment: ' + node.start + 'm')
+          removeNodes.push(i+1)
+          continue // skip next rule
+        }
+        // mark to remove a node with short END segment and big ANGLE
+        if (node.angle >= this.settings.get('simplifyAngle')
+          && node.end < this.settings.get('simplifyShort')) {
+          this.log('found too short fragment: ' + node.end + 'm')
+          removeNodes.push(i+1)
+          i++ // skip next node
+          continue // skip next rule
+        }
+        // mark to remove a node with big angle and short segments
+        if (node.angle >= this.settings.get('simplifyAngle')
+          && node.start + node.end < this.settings.get('simplifyTwoShort')) {
           this.log(
-            'found node with short segments: ' + segmentsLength[i] + ' + ' + segmentsLength[i + 1] + ' = ' +
-            (segmentsLength[i] + segmentsLength[i + 1]) + 'm'
+            'found point with short fragment: ' + node.start + ' + ' + node.end + ' = ' +
+            (node.start + node.end) + 'm and angle equal to ' + node.angle + '°'
           )
-          removeNodes.push(i + 1)
-          i++ // skip next one
+          removeNodes.push(i+1)
+          // continue // skip next rule
         }
       }
 
@@ -293,6 +323,31 @@
         newGeometry.components = components
         W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(model, model.geometry, newGeometry))
       }
+    }
+
+    /**
+     * Calculates the angle (in radians) between two vectors pointing outward from one center
+     *
+     * @param {Object} start first point
+     * @param {Object} center second point
+     * @param {Object} end third point
+     */
+    findAngle (start, center, end) {
+      let b = Math.pow(center.x - start.x, 2) + Math.pow(center.y - start.y, 2),
+        a = Math.pow(center.x - end.x, 2) + Math.pow(center.y - end.y, 2),
+        c = Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)
+      return Math.acos((a + b - c) / Math.sqrt(4 * a * b)) * (180 / Math.PI)
+    }
+
+    /**
+     * Get the length of the line by point coordinates
+     * @param {Object} start
+     * @param {Object} end
+     * @return {Number} length in meters
+     */
+    findLength (start, end) {
+      let line = new OpenLayers.Geometry.LineString([start, end])
+      return line.getGeodesicLength('EPSG:900913')
     }
 
     /**
@@ -400,13 +455,13 @@
         // работа с узлом
         let node = W.model.nodes.getObjectById(segment.attributes.fromNodeID)
         let D = node.attributes.geometry.y * A - node.attributes.geometry.x * B
-        let r1 = getIntersectCoord(A, B, C, D)
+        let r1 = getIntersectCoordinates(A, B, C, D)
         this.log('move node A')
         this.moveNode(node, r1)
 
         let node2 = W.model.nodes.getObjectById(segment.attributes.toNodeID)
         let D2 = node2.attributes.geometry.y * A - node2.attributes.geometry.x * B
-        let r2 = getIntersectCoord(A, B, C, D2)
+        let r2 = getIntersectCoordinates(A, B, C, D2)
         this.log('move node B')
         this.moveNode(node2, r2)
 
@@ -415,35 +470,34 @@
     }
 
     /**
-     * выстраивает два выбранных сегмента перпендикулярно друг другу
-     * перемещая их общий узел
+     * Orthogonalize two segments
+     * This method move the node to new point
      *
-     * @param {Array} models
+     * @param {Object} segment1
+     * @param {Object} segment2
      * @return {void}
      */
-    orthogonalizeStreetGeometry (models) {
+    orthogonalizeStreetGeometry (segment1, segment2) {
       this.log('orthogonalize street geometry')
 
-      let seg1 = models[0],
-        seg2 = models[1],
-        seg1Attrs = seg1.attributes,
-        seg2Attrs = seg2.attributes
-      let commonNodeID
-
-      if (seg1.type !== 'segment' || seg2.type !== 'segment') {
+      if (segment1.type !== 'segment' || segment2.type !== 'segment') {
         this.log('only segments must be selected')
         return
       }
 
-      // ID общего узла
+      let seg1Attrs = segment1.attributes,
+        seg2Attrs = segment2.attributes
+      let commonNodeID
+
+      // find ID of the common node
       let node = {}
       if (seg1Attrs.fromNodeID === seg2Attrs.fromNodeID) commonNodeID = seg1Attrs.fromNodeID
-      if (seg1Attrs.fromNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.fromNodeID
-      if (seg1Attrs.toNodeID === seg2Attrs.fromNodeID) commonNodeID = seg1Attrs.toNodeID
-      if (seg1Attrs.toNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.toNodeID
+      else if (seg1Attrs.fromNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.fromNodeID
+      else if (seg1Attrs.toNodeID === seg2Attrs.fromNodeID) commonNodeID = seg1Attrs.toNodeID
+      else if (seg1Attrs.toNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.toNodeID
 
       if (!commonNodeID) {
-        this.log('segments does not have common node.')
+        this.log('segments does not have common node')
         return
       }
 
@@ -456,15 +510,15 @@
 
       // упростим оба сегмента
       // TODO: подумать, можно ли использовать координаты промежуточных узлов и не упрощать сегменты
-      this.straightenSegmentGeometry(seg1)
-      this.straightenSegmentGeometry(seg2)
+      this.straightenSegmentGeometry(segment1)
+      this.straightenSegmentGeometry(segment2)
 
       // вычислим новое положение общего узла
       // координаты концов первого сегмента
-      let x1 = seg1.getFromNode().attributes.geometry.x,
-        y1 = seg1.getFromNode().attributes.geometry.y,
-        x2 = seg1.getToNode().attributes.geometry.x,
-        y2 = seg1.getToNode().attributes.geometry.y
+      let x1 = segment1.getFromNode().attributes.geometry.x,
+        y1 = segment1.getFromNode().attributes.geometry.y,
+        x2 = segment1.getToNode().attributes.geometry.x,
+        y2 = segment1.getToNode().attributes.geometry.y
 
       // коэффициенты в формуле прямой, проходящей через концы первого сегмента
       let A = y1 - y2,
@@ -474,7 +528,7 @@
         D = otherNode.attributes.geometry.y * A - otherNode.attributes.geometry.x * B
 
       // move node and its segments to calculated position
-      this.moveNode(node, getIntersectCoord(A, B, C, D))
+      this.moveNode(node, getIntersectCoordinates(A, B, C, D))
     }
 
     /**
@@ -510,8 +564,15 @@
     }
   }
 
-  // рассчитаем пересечение перпендикуляра точки с наклонной прямой
-  function getIntersectCoord (A, B, C, D) {
+  /**
+   * Find intersection point
+   * @param {Number} A
+   * @param {Number} B
+   * @param {Number} C
+   * @param {Number} D
+   * @return {Number[]}
+   */
+  function getIntersectCoordinates (A, B, C, D) {
     //  http://rsdn.ru/forum/alg/2589531.hot
     let r = [2]
     r[1] = -1.0 * (C * B - A * D) / (A * A + B * B)
@@ -520,7 +581,12 @@
     return r
   }
 
-  // определим направляющие
+  /**
+   * Detect direction
+   * @param {Number} A
+   * @param {Number} B
+   * @return {Number}
+   */
   function getDeltaDirect (A, B) {
     let d = 0.0
 
@@ -542,8 +608,7 @@
     let Instance = new E85(NAME, SETTINGS)
     Instance.init(BUTTONS)
 
-    // rename shortcut section
+    // setup name for shortcut section
     WMEUIShortcut.setGroupTitle(NAME, I18n.t(NAME).title)
   })
-
 })()
