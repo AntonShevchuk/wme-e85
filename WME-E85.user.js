@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
-// @version      0.1.2
+// @version      0.1.3
 // @description  Simplify Street Geometry, looks like fork
 // @license      MIT License
 // @author       Anton Shevchuk
