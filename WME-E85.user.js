@@ -14,8 +14,8 @@
 // @require      https://greasyfork.org/scripts/389765-common-utils/code/CommonUtils.js?version=1090053
 // @require      https://greasyfork.org/scripts/450160-wme-bootstrap/code/WME-Bootstrap.js?version=1135567
 // @require      https://greasyfork.org/scripts/452563-wme/code/WME.js?version=1101598
-// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1129908
-// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1137009
+// @require      https://greasyfork.org/scripts/450221-wme-base/code/WME-Base.js?version=1137043
+// @require      https://greasyfork.org/scripts/450320-wme-ui/code/WME-UI.js?version=1137289
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -122,8 +122,8 @@
   // Default settings
   const SETTINGS = {
     simplifyShort: 5,
-    simplifyAngle: 179,
-    simplifyTwoShort: 25,
+    simplifyAngle: 176,
+    simplifyTwoShort: 50,
   }
 
   let WazeActionUpdateSegmentGeometry
@@ -182,8 +182,6 @@
      * @return {void}
      */
     onSegment (event, element, model) {
-      this.log('Selected one segment')
-
       let panel = this.helper.createPanel(I18n.t(this.name).title)
       let simplifyButton = panel.addButton(
         'A',
@@ -215,8 +213,6 @@
      * @return {void}
      */
     onSegments (event, element, models) {
-      this.log('Selected some segments')
-
       let panel = this.helper.createPanel(I18n.t(this.name).title)
       let simplifyButton = panel.addButton(
         'A',
@@ -262,6 +258,7 @@
         return
       }
 
+      this.group('simplify segment geometry')
       this.log('check geometry of the segment with ID ' + model.getID())
       let nodes = []
 
@@ -322,6 +319,7 @@
         newGeometry.components = components
         W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(model, model.geometry, newGeometry))
       }
+      this.groupEnd()
     }
 
     /**
@@ -355,9 +353,11 @@
      * @return {void}
      */
     simplifyStreetGeometry (models) {
+      this.group('simplify street geometry')
       for (let i = 0; i < models.length; i++) {
         this.simplifySegmentGeometry(models[i])
       }
+      this.groupEnd()
     }
 
     /**
@@ -370,7 +370,7 @@
      * @return {void}
      */
     straightenStreetGeometry (models) {
-      this.log('simplify street geometry')
+      this.group('straighten street geometry')
       this.log('calculating the formula for the straight line')
 
       let T1, T2,
@@ -446,7 +446,7 @@
       for (let i = 0; i < models.length; i++) {
         let segment = models[i]
 
-        this.log('simplify segment #' + i)
+        this.group('straighten segment #' + i)
 
         // упрощаем сегмент, если нужно
         this.straightenSegmentGeometry(segment)
@@ -465,6 +465,7 @@
         this.moveNode(node2, r2)
 
         this.log('segment #' + (i + 1) + ' (' + r1[0] + ';' + r1[1] + ') - (' + r2[0] + ';' + r2[1] + ')')
+        this.groupEnd()
       }
     }
 
