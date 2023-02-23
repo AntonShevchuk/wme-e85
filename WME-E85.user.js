@@ -3,6 +3,7 @@
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
 // @version      0.1.5
 // @description  Simplify Street Geometry, looks like fork
+// @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
 // @author       Anton Shevchuk
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
