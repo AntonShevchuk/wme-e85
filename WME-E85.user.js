@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.1.5
+// @version      0.1.6
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -184,6 +184,11 @@
      * @return {void}
      */
     onSegment (event, element, model) {
+      // Skip for blocked roads
+      if (model.isLockedByHigherRank()) {
+        return
+      }
+
       let panel = this.helper.createPanel(I18n.t(this.name).title)
       let simplifyButton = panel.addButton(
         'A',
@@ -204,7 +209,13 @@
         simplifyButton.html().disabled = true
         straightenButton.html().disabled = true
       }
-      element.prepend(panel.html())
+
+      const existingFormGroup = element.querySelector('div.form-group.e85');
+      if (existingFormGroup) {
+        existingFormGroup.replaceWith(panel.html());
+      } else {
+        element.prepend(panel.html());
+      }
     }
 
     /**
@@ -215,6 +226,12 @@
      * @return {void}
      */
     onSegments (event, element, models) {
+      // Skip for locked roads
+      if (models.filter((model) => model.isLockedByHigherRank()).length > 0) {
+        element.querySelector('div.form-group.e85')?.remove()
+        return
+      }
+
       let panel = this.helper.createPanel(I18n.t(this.name).title)
       let simplifyButton = panel.addButton(
         'A',
@@ -247,7 +264,12 @@
         )
       }
 
-      element.prepend(panel.html())
+      const existingFormGroup = element.querySelector('div.form-group.e85');
+      if (existingFormGroup) {
+        existingFormGroup.replaceWith(panel.html());
+      } else {
+        element.prepend(panel.html());
+      }
     }
 
     /**
