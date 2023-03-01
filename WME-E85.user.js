@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.1.6
+// @version      0.1.7
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -185,7 +185,7 @@
      */
     onSegment (event, element, model) {
       // Skip for blocked roads
-      if (model.isLockedByHigherRank()) {
+      if (model.isLockedByHigherRank() || !model.isGeometryEditable()) {
         return
       }
 
@@ -227,7 +227,7 @@
      */
     onSegments (event, element, models) {
       // Skip for locked roads
-      if (models.filter((model) => model.isLockedByHigherRank()).length > 0) {
+      if (models.filter((model) => model.isLockedByHigherRank() || !model.isGeometryEditable()).length > 0) {
         element.querySelector('div.form-group.e85')?.remove()
         return
       }
