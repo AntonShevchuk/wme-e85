@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.0
+// @version      0.2.1
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -241,7 +241,8 @@
         BUTTONS.A.shortcut
       )
 
-      panel.addButton(
+      // Don't straighten multiple components
+      let straightenButton = panel.addButton(
         'B',
         BUTTONS.B.title,
         BUTTONS.B.description,
@@ -254,7 +255,13 @@
       if (modelWithComponents.length === 0) {
         simplifyButton.html().disabled = true
       }
-      if (models.length === 2) {
+
+      if (W.selectionManager.getSegmentSelection().multipleConnectedComponents) {
+        straightenButton.html().disabled = true
+      }
+
+      if (!W.selectionManager.getSegmentSelection().multipleConnectedComponents
+        && models.length === 2) {
         panel.addButton(
           'C',
           BUTTONS.C.title,
@@ -288,9 +295,9 @@
 
       // calculate angles for every inside point
       for (let i = 0; i < model.getGeometry().coordinates.length - 2; i++) {
-        let nodeStart = model.geometry.components[i],
-          nodeCenter = model.geometry.components[i + 1],
-          nodeEnd = model.geometry.components[i + 2]
+        let nodeStart = model.getGeometry().coordinates[i],
+          nodeCenter = model.getGeometry().coordinates[i + 1],
+          nodeEnd = model.getGeometry().coordinates[i + 2]
 
         nodes[i] = {
           angle: Math.round(this.findAngle(nodeStart, nodeCenter, nodeEnd)),
@@ -333,15 +340,15 @@
 
       // remove nodes from geometry
       if (removeNodes.length) {
-        let newGeometry = model.geometry.clone()
-        let components = []
-        for (let i = 0; i < newGeometry.components.length; i++) {
+        let newGeometry = { ... model.getGeometry() }
+        let coordinates = []
+        for (let i = 0; i < newGeometry.coordinates.length; i++) {
           if (removeNodes.indexOf(i) === -1) {
-            components.push(newGeometry.components[i])
+            coordinates.push(newGeometry.coordinates[i])
           }
         }
-        newGeometry.components = components
-        W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(model, model.geometry, newGeometry))
+        newGeometry.coordinates = coordinates
+        W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(model, model.getGeometry(), newGeometry))
       }
       this.groupEnd()
     }
@@ -354,21 +361,20 @@
      * @param {Object} end third point
      */
     findAngle (start, center, end) {
-      let b = Math.pow(center.x - start.x, 2) + Math.pow(center.y - start.y, 2),
-        a = Math.pow(center.x - end.x, 2) + Math.pow(center.y - end.y, 2),
-        c = Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)
+      let b = Math.pow(center[0] - start[0], 2) + Math.pow(center[1] - start[1], 2),
+        a = Math.pow(center[0] - end[0], 2) + Math.pow(center[1] - end[1], 2),
+        c = Math.pow(end[0] - start[0], 2) + Math.pow(end[1] - start[1], 2)
       return Math.acos((a + b - c) / Math.sqrt(4 * a * b)) * (180 / Math.PI)
     }
 
     /**
      * Get the length of the line by point coordinates
-     * @param {Object} start
-     * @param {Object} end
+     * @param {Array<number,number>} start point
+     * @param {Array<number,number>} end point
      * @return {Number} length in meters
      */
     findLength (start, end) {
-      let line = new OpenLayers.Geometry.LineString([start, end])
-      return line.getGeodesicLength('EPSG:900913')
+      return distance(start[0], start[1], end[0], end[1])
     }
 
     /**
@@ -397,100 +403,83 @@
       this.group('straighten street geometry')
       this.log('calculating the formula for the straight line')
 
-      let T1, T2,
-        t,
-        A = 0.0,
-        B = 0.0,
-        C = 0.0
+      let segmentSelection = W.selectionManager.getSegmentSelection()
 
-      for (let i = 0; i < models.length; i++) {
-        let segment = models[i]
-
-        let geometry = segment.geometry
-
-        if (geometry.components.length < 2) {
-          continue
-        }
-
-        // определяем формулу наклонной прямой
-        let A1 = geometry.components[0].clone(),
-          A2 = geometry.components[geometry.components.length - 1].clone()
-
-        let dX = getDeltaDirect(A1.x, A2.x)
-        let dY = getDeltaDirect(A1.y, A2.y)
-
-        // looks very strange
-        let tX = i > 0 ? getDeltaDirect(T1.x, T2.x) : 0
-        let tY = i > 0 ? getDeltaDirect(T1.y, T2.y) : 0
-
-        this.log('vector of the line - tX=' + tX + ', tY=' + tY)
-        this.log('segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
-
-        if (dX < 0) {
-          t = A1.x
-          A1.x = A2.x
-          A2.x = t
-
-          t = A1.y
-          A1.y = A2.y
-          A2.y = t
-
-          dX = getDeltaDirect(A1.x, A2.x)
-          dY = getDeltaDirect(A1.y, A2.y)
-
-          this.log('rotate segment #' + (i + 1) + ' (' + A1.x + '; ' + A1.y + ') - (' + A2.x + '; ' + A2.y + '), dX=' + dX + ', dY=' + dY)
-        }
-
-        // looks very strange
-        if (i === 0) {
-          T1 = A1.clone()
-          T2 = A2.clone()
-        } else {
-          if (A1.x < T1.x) {
-            T1.x = A1.x
-            T1.y = A1.y
-          }
-
-          if (A2.x > T2.x) {
-            T2.x = A2.x
-            T2.y = A2.y
-          }
-
-          this.log('calculated straight line (' + T1.x + '; ' + T1.y + ') - (' + T2.x + '; ' + T2.y + ')')
-        }
+      if (segmentSelection.multipleConnectedComponents) {
+        this.log('don\'t try to straighten multiple segments without connection')
       }
 
-      A = T2.y - T1.y
-      B = T1.x - T2.x
-      C = T2.x * T1.y - T1.x * T2.y
+      let
+        allNodeIds = [], // all nodes for selected segments
+        dupNodeIds = [], // only nodes inside connections
+        virtualNodes = [] // virtual nodes of segments
 
-      this.log('line coords: (' + T1.x + ';' + T1.y + ') - (' + T2.x + ';' + T2.y + ')')
-      this.log('line formula: ' + A + 'x + ' + B + 'y + ' + C)
+      models.forEach(segment => {
+        this.log('straighten segment #' + segment.getID())
 
-      for (let i = 0; i < models.length; i++) {
-        let segment = models[i]
-
-        this.group('straighten segment #' + i)
-
-        // упрощаем сегмент, если нужно
+        // simplify segment to straight
         this.straightenSegmentGeometry(segment)
 
-        // работа с узлом
-        let node = W.model.nodes.getObjectById(segment.attributes.fromNodeID)
-        let D = node.attributes.geometry.y * A - node.attributes.geometry.x * B
-        let r1 = getIntersectCoordinates(A, B, C, D)
-        this.log('move node A')
-        this.moveNode(node, r1)
+        // collect the nodes
+        allNodeIds.push(segment.getFromNode().getID())
+        allNodeIds.push(segment.getToNode().getID())
+        virtualNodes = virtualNodes.concat(segment.getVirtualNodes())
+      })
 
-        let node2 = W.model.nodes.getObjectById(segment.attributes.toNodeID)
-        let D2 = node2.attributes.geometry.y * A - node2.attributes.geometry.x * B
-        let r2 = getIntersectCoordinates(A, B, C, D2)
-        this.log('move node B')
-        this.moveNode(node2, r2)
+      if (virtualNodes.length ) {
+        this.log('⚠️ virtual nodes are present, please disconnect all trails and rails from the segments and try again')
 
-        this.log('segment #' + (i + 1) + ' (' + r1[0] + ';' + r1[1] + ') - (' + r2[0] + ';' + r2[1] + ')')
-        this.groupEnd()
+        // doesn't work, but why? what is wrong with this code?
+        // virtualNodes.forEach(node => {
+        //   let element = document.getElementById(node.getOLGeometry.id)
+        //   element.setAttribute("fill","#dd7700")
+        //
+        //   element.addEventListener("click", () => {
+        //     element.setAttribute("fill","#00ece3")
+        //   });
+        // })
+
+        return
       }
+
+      allNodeIds.forEach((nodeId, idx) => {
+        if (allNodeIds.indexOf(nodeId, idx + 1) > -1) {
+          if (!dupNodeIds.includes(nodeId))
+            dupNodeIds.push(nodeId);
+        }
+      });
+
+      let distinctNodeIds = [...new Set(allNodeIds)];
+      let endPointNodeIds = distinctNodeIds.filter((nodeId) => !dupNodeIds.includes(nodeId));
+      let endPointNodes = W.model.nodes.getByIds(endPointNodeIds),
+        endPointNode1Geo = endPointNodes[0].getGeometry().coordinates,
+        endPointNode2Geo = endPointNodes[1].getGeometry().coordinates
+
+      const a = endPointNode2Geo[1] - endPointNode1Geo[1],
+        b = endPointNode1Geo[0] - endPointNode2Geo[0],
+        c = endPointNode2Geo[0] * endPointNode1Geo[1] - endPointNode1Geo[0] * endPointNode2Geo[1];
+
+      dupNodeIds.forEach((nodeId) => {
+        const node = W.model.nodes.getObjectById(nodeId),
+          nodeCoordinates = node.getGeometry().coordinates;
+        const d = nodeCoordinates[1] * a - nodeCoordinates[0] * b,
+          newCoordinates = getIntersectCoordinates(a, b, c, d);
+
+        this.log('move node #' + nodeId + ' to [' + newCoordinates[0] + ';' + newCoordinates[1] + ']')
+        this.moveNode(node, newCoordinates)
+      });
+
+      // I don't understand why doesn't it work, in the WME all looks good, but it fails when try to save changes
+      // virtualNodes.forEach((node) => {
+      //   const nodeCoordinates = node.getGeometry().coordinates;
+      //   const d = nodeCoordinates[1] * a - nodeCoordinates[0] * b,
+      //     newCoordinates = getIntersectCoordinates(a, b, c, d);
+      //
+      //   this.log('move node #' + node.getID() + ' to [' + newCoordinates[0] + ';' + newCoordinates[1] + ']')
+      //   this.moveNode(node, newCoordinates)
+      // });
+
+      this.groupEnd()
     }
 
     /**
@@ -504,55 +493,85 @@
     orthogonalizeStreetGeometry (segment1, segment2) {
       this.log('orthogonalize street geometry')
 
-      if (segment1.type !== 'segment' || segment2.type !== 'segment') {
+      if (segment1.getType() !== 'segment'
+        || segment2.getType() !== 'segment') {
         this.log('only segments must be selected')
         return
       }
 
-      let seg1Attrs = segment1.attributes,
-        seg2Attrs = segment2.attributes
-      let commonNodeID
+      /**
+       * Extract coordinates from components
+       * @param {Object} segment
+       * @param {'first'|'second'|'last-but-one'|'last'} position
+       * @return {*[]}
+       */
+      function getCoordinatesFromComponent(segment, position) {
+        let pos = 0
+        switch (position) {
+          case 'first':
+            pos = 0
+            break
+          case 'second':
+            pos = 1
+            break
+          case 'last-but-one':
+            pos = segment.getOLGeometry().components.length - 2
+            break
+          case 'last':
+            pos = segment.getOLGeometry().components.length - 1
+            break
+        }
+        return [
+          segment.getOLGeometry().components[pos].x,
+          segment.getOLGeometry().components[pos].y,
+        ]
+      }
 
-      // find ID of the common node
-      let node = {}
-      if (seg1Attrs.fromNodeID === seg2Attrs.fromNodeID) commonNodeID = seg1Attrs.fromNodeID
-      else if (seg1Attrs.fromNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.fromNodeID
-      else if (seg1Attrs.toNodeID === seg2Attrs.fromNodeID) commonNodeID = seg1Attrs.toNodeID
-      else if (seg1Attrs.toNodeID === seg2Attrs.toNodeID) commonNodeID = seg1Attrs.toNodeID
+      let A, B, C, commonNode
 
-      if (!commonNodeID) {
+      if (segment1.getToNode().getID() === segment2.getFromNode().getID()) {
+        // A → B → C
+        commonNode = segment1.getToNode()
+        A = getCoordinatesFromComponent(segment1, 'last-but-one')
+        B = getCoordinatesFromComponent(segment1, 'last')
+        C = getCoordinatesFromComponent(segment2, 'second')
+      } else if (segment1.getFromNode().getID() === segment2.getFromNode().getID()) {
+        // B ← A → C
+        commonNode = segment1.getFromNode()
+        A = getCoordinatesFromComponent(segment1, 'second')
+        B = getCoordinatesFromComponent(segment1, 'first')
+        C = getCoordinatesFromComponent(segment2, 'second')
+      } else if (segment1.getToNode().getID() === segment2.getToNode().getID()) {
+        // A → B ← C
+        commonNode = segment1.getToNode()
+        A = getCoordinatesFromComponent(segment1, 'last-but-one')
+        B = getCoordinatesFromComponent(segment1, 'last')
+        C = getCoordinatesFromComponent(segment2, 'last-but-one')
+      } else if (segment1.getFromNode().getID() === segment2.getToNode().getID()) {
+        // B ← A ← C
+        commonNode = segment1.getFromNode()
+        A = getCoordinatesFromComponent(segment1, 'second')
+        B = getCoordinatesFromComponent(segment1, 'first')
+        C = getCoordinatesFromComponent(segment2, 'last-but-one')
+      }
+
+      if (!commonNode) {
         this.log('segments does not have common node')
         return
       }
 
-      this.log('common node ID: ' + commonNodeID)
-      node = W.model.nodes.getObjectById(commonNodeID)
+      this.log('common node coords [' + B[0] + ';' + B[1] + ']')
 
-      // ID другого узла второго сегмента. От него будем строить перпендикуляр
-      let otherNodeID = commonNodeID === seg2Attrs.fromNodeID ? seg2Attrs.toNodeID : seg2Attrs.fromNodeID
-      let otherNode = W.model.nodes.getObjectById(otherNodeID)
+      // Coordinates of points A, B and C
+      // First selected segment uses it as line for calculation
+      let intersection = findIntersection(A, B, C)
 
-      // упростим оба сегмента
-      // TODO: подумать, можно ли использовать координаты промежуточных узлов и не упрощать сегменты
-      this.straightenSegmentGeometry(segment1)
-      this.straightenSegmentGeometry(segment2)
+      // Uses OpenLayers with convertation, because
+      intersection = W.userscripts.toGeoJSONGeometry(new OpenLayers.Geometry.Point( ...intersection ))
 
-      // вычислим новое положение общего узла
-      // координаты концов первого сегмента
-      let x1 = segment1.getFromNode().attributes.geometry.x,
-        y1 = segment1.getFromNode().attributes.geometry.y,
-        x2 = segment1.getToNode().attributes.geometry.x,
-        y2 = segment1.getToNode().attributes.geometry.y
+      this.log('point of the intersection is [' + intersection[0] + ', ' + intersection[1] +']')
 
-      // коэффициенты в формуле прямой, проходящей через концы первого сегмента
-      let A = y1 - y2,
-        B = x2 - x1,
-        C = x1 * y2 - x2 * y1,
-        // что такое D ???
-        D = otherNode.attributes.geometry.y * A - otherNode.attributes.geometry.x * B
-
-      // move node and its segments to calculated position
-      this.moveNode(node, getIntersectCoordinates(A, B, C, D))
+      this.moveNode(commonNode, intersection.coordinates)
     }
 
     /**
@@ -560,10 +579,10 @@
      * @param {Object} segment
      */
     straightenSegmentGeometry (segment) {
-      if (segment.geometry.components.length > 2) {
-        let newGeometry = segment.geometry.clone()
-        newGeometry.components.splice(1, newGeometry.components.length - 2)
-        W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.geometry, newGeometry))
+      if (segment.getGeometry().coordinates.length > 2) {
+        let newGeometry = { ...segment.getGeometry() }
+        newGeometry.coordinates.splice(1, newGeometry.coordinates.length - 2)
+        W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.getGeometry(), newGeometry))
       }
     }
 
@@ -573,20 +592,62 @@
      * @param {Array<2>} coords of the new position, array of the wo elements
      */
     moveNode (node, coords) {
-      let nodeGeo = node.geometry.clone()
-      nodeGeo.x = coords[0]
-      nodeGeo.y = coords[1]
-      nodeGeo.calculateBounds()
+      let nodeGeometry = node.getGeometry()
+      nodeGeometry.coordinates = coords
 
       let connectedSegObjs = {}
       let emptyObj = {}
-      for (let j = 0; j < node.attributes.segIDs.length; j++) {
-        let segId = node.attributes.segIDs[j]
-        connectedSegObjs[segId] = W.model.segments.getObjectById(segId).geometry.clone()
-      }
-      W.model.actionManager.add(new WazeActionMoveNode(node, node.geometry, nodeGeo, connectedSegObjs, emptyObj))
+
+      node.getSegmentIds().forEach((id) => {
+        connectedSegObjs[id] = { ...W.model.segments.getObjectById(id).getGeometry() }
+      })
+
+      W.model.actionManager.add(
+        new WazeActionMoveNode(
+          node,
+          node.getGeometry(),
+          nodeGeometry,
+          connectedSegObjs,
+          emptyObj
+        )
+      )
     }
   }
+
+  /**
+   * @param {Array<number,number>} A point of line
+   * @param {Array<number,number>} B point of line
+   * @param {Array<number,number>} C point
+   * @return {(number|*)[]}
+   */
+  function findIntersection(A, B, C) {
+    // Функция для вычисления углового коэффициента прямой
+    function slope(point1, point2) {
+      return (point2[1] - point1[1]) / (point2[0] - point1[0]);
+    }
+
+    // Функция для вычисления c (точка пересечения с осью Y) для уравнения прямой
+    function intercept(point, slope) {
+      return point[1] - slope * point[0];
+    }
+
+    // Вычисляем угловой коэффициент для прямой AB
+    let mAB = slope(A, B);
+    // Вычисляем c для прямой AB
+    let cAB = intercept(A, mAB);
+
+    // Для перпендикуляра угловой коэффициент будет обратным и противоположным
+    let mPerpendicular = -1 / mAB;
+    // Вычисляем c для перпендикулярной прямой, проходящей через C
+    let cPerpendicular = intercept(C, mPerpendicular);
+
+    // Находим точку пересечения прямых
+    let x = (cPerpendicular - cAB) / (mAB - mPerpendicular);
+    let y = mAB * x + cAB;
+
+    return [x, y];
+  }
+
 
   /**
    * Find intersection point
@@ -612,16 +673,36 @@
    * @return {Number}
    */
   function getDeltaDirect (A, B) {
-    let d = 0.0
-
     if (A < B) {
-      d = 1.0
+      return 1.0
     } else if (A > B) {
-      d = -1.0
+      return -1.0
     }
 
-    return d
+    return 0.0
   }
+
+  /**
+   * Calculate the approximate distance between two coordinates (lat/lon)
+   *
+   * © Chris Veness, MIT-licensed,
+   * http://www.movable-type.co.uk/scripts/latlong.html#equirectangular
+   *
+   * @param {number} λ1 first point latitude
+   * @param {number} φ1 first point longitude
+   * @param {number} λ2 second point latitude
+   * @param {number} φ2 second point longitude
+   */
+  function distance (λ1, φ1, λ2, φ2) {
+    let R = 6371000;
+    let Δλ = (λ2 - λ1) * Math.PI / 180;
+    φ1 = φ1 * Math.PI / 180;
+    φ2 = φ2 * Math.PI / 180;
+    let x = Δλ * Math.cos((φ1+φ2)/2);
+    let y = (φ2-φ1);
+    let d = Math.sqrt(x*x + y*y);
+    return R * d;
+  };
 
   $(document).on('bootstrap.wme', () => {
 
