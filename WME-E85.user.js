@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.1
+// @version      0.2.2
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -128,9 +128,10 @@
     simplifyTwoShort: 50,
   }
 
-  let WazeActionUpdateSegmentGeometry
-  let WazeActionMoveNode
   let WazeActionAddNode
+  let WazeActionMoveNode
+  let WazeActionMultiAction
+  let WazeActionUpdateSegmentGeometry
 
   class E85 extends WMEBase {
     /**
@@ -391,10 +392,12 @@
     }
 
     /**
-     * Выравнивает сегменты в прямую линию, перемещая промежуточные узлы
-     * в точки пересечения перпендикуляров к вычисленной прямой, проходящей через
-     * начальный и конечный узлы выделения
-     * A,B,C - параметры вычисленной прямой уравнения Аx + By + C = 0
+     * Aligns the segments into a straight line by moving the intermediate
+     * nodes to the intersection points of the perpendiculars with
+     * the calculated line passing through the start and end nodes of the selection.
+     *
+     * A, B, and C are the parameters of the calculated line equation:
+     *   Ax + By + C = 0
      *
      * @param {Array} models
      * @return {void}
@@ -579,10 +582,17 @@
      * @param {Object} segment
      */
     straightenSegmentGeometry (segment) {
+      this.group('straighten segment geometry')
       if (segment.getGeometry().coordinates.length > 2) {
-        let newGeometry = { ...segment.getGeometry() }
+        let multiAction = new WazeActionMultiAction()
+        let newGeometry = structuredClone(segment.attributes.geoJSONGeometry)
+        // just left the first and last elements
         newGeometry.coordinates.splice(1, newGeometry.coordinates.length - 2)
-        W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.getGeometry(), newGeometry))
+        // W.model.actionManager.add(new WazeActionUpdateSegmentGeometry(segment, segment.getGeometry(), newGeometry))
+        let updateSegmentGeometry = new WazeActionUpdateSegmentGeometry(segment, segment.attributes.geoJSONGeometry, newGeometry)
+        updateSegmentGeometry.generateDescription();
+        multiAction.doSubAction(W.model, updateSegmentGeometry);
+        W.model.actionManager.add(multiAction);
       }
     }
 
@@ -706,14 +716,15 @@
 
   $(document).on('bootstrap.wme', () => {
 
-    WazeActionUpdateSegmentGeometry = require('Waze/Action/UpdateSegmentGeometry')
-    WazeActionMoveNode = require('Waze/Action/MoveNode')
     WazeActionAddNode = require('Waze/Action/AddNode')
+    WazeActionMoveNode = require('Waze/Action/MoveNode')
+    WazeActionMultiAction = require('Waze/Action/MultiAction');
+    WazeActionUpdateSegmentGeometry = require('Waze/Action/UpdateSegmentGeometry')
 
     let Instance = new E85(NAME, SETTINGS)
     Instance.init(BUTTONS)
 
-    // setup name for shortcut section
+    // setup name for a shortcut section
     WMEUIShortcut.setGroupTitle(NAME, I18n.t(NAME).title)
   })
 })()
