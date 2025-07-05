@@ -27,9 +27,13 @@ Straighten up the street – choose one or more segments and align straight
 
 Orthogonalize two segments by 90 degrees
 
+## Align streets by angle
+
+Align two segments by one of the predefined angles: 90°, 60°, 45°, 30°
+
 ## Settings
 
-Simplify method can by optimised by settings
+Simplify method can be optimised by settings
 
 ![](settings.png)
 
