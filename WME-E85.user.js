@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.5
+// @version      0.2.6
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -46,6 +46,9 @@
         A: 'Simplify',
         B: 'Straighten',
         C: '∡90°',
+        D: '∡60°',
+        E: '∡45°',
+        F: '∡30°',
       },
       settings: {
         title: 'Settings',
@@ -62,6 +65,9 @@
         A: 'Спростити',
         B: 'Вирівняти',
         C: '∡90°',
+        D: '∡60°',
+        E: '∡45°',
+        F: '∡30°',
       },
       settings: {
         title: 'Налаштування',
@@ -78,6 +84,9 @@
         A: 'Упростить',
         B: 'Выровнять',
         C: '∡90°',
+        D: '∡60°',
+        E: '∡45°',
+        F: '∡30°',
       },
       settings: {
         title: 'Настройки',
@@ -91,8 +100,11 @@
 
   const STYLE =
     'button.e85.e85-A { background-color: #0f9; margin-right: 2px }' +
-    'button.e85.e85-B { background-color: #09f; color: #fff }' +
-    'button.e85.e85-C { background-color: #f99; margin-left: 2px }' +
+    'button.e85.e85-B { background-color: #09f; margin-right: 20px; color: #fff }' +
+    'button.e85.e85-C { background-color: #fdd; margin: 2px 2px 0 0}' +
+    'button.e85.e85-D { background-color: #fbb; margin: 2px 2px 0 0 }' +
+    'button.e85.e85-E { background-color: #f99; margin: 2px 2px 0 0 }' +
+    'button.e85.e85-F { background-color: #f77; margin: 2px 2px 0 0 }' +
     'button.e85.e85-A:disabled, button.e85.e85-B:disabled { background-color: #ccc }' +
     '.e85 legend { cursor:pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }' +
     '.e85 fieldset { border: 1px solid #ddd; padding: 8px; }' +
@@ -117,6 +129,21 @@
     C: {
       title: I18n.t(NAME).buttons.C,
       description: I18n.t(NAME).buttons.C,
+      shortcut: '',
+    },
+    D: {
+      title: I18n.t(NAME).buttons.D,
+      description: I18n.t(NAME).buttons.D,
+      shortcut: '',
+    },
+    E: {
+      title: I18n.t(NAME).buttons.E,
+      description: I18n.t(NAME).buttons.E,
+      shortcut: '',
+    },
+    F: {
+      title: I18n.t(NAME).buttons.F,
+      description: I18n.t(NAME).buttons.F,
       shortcut: '',
     },
   }
@@ -150,7 +177,7 @@
         }
       )
 
-      // Setup options for script
+      // Setup options for the script
       let fieldset = this.helper.createFieldset(I18n.t(NAME).settings.title)
       fieldset.addText('description', I18n.t(NAME).settings.description)
       let settings = this.settings.get()
@@ -263,12 +290,34 @@
 
       if (!W.selectionManager.getSegmentSelection().multipleConnectedComponents
         && models.length === 2) {
+        panel.addDiv('align-by-angle')
         panel.addButton(
           'C',
           BUTTONS.C.title,
           BUTTONS.C.description,
-          () => this.orthogonalizeStreetGeometry(models[0], models[1]),
+          () => this.alignStreetGeometry(models[0], models[1], 90),
           BUTTONS.C.shortcut
+        )
+        panel.addButton(
+          'D',
+          BUTTONS.D.title,
+          BUTTONS.D.description,
+          () => this.alignStreetGeometry(models[0], models[1], 60),
+          BUTTONS.D.shortcut
+        )
+        panel.addButton(
+          'E',
+          BUTTONS.E.title,
+          BUTTONS.E.description,
+          () => this.alignStreetGeometry(models[0], models[1], 45),
+          BUTTONS.E.shortcut
+        )
+        panel.addButton(
+          'F',
+          BUTTONS.F.title,
+          BUTTONS.F.description,
+          () => this.alignStreetGeometry(models[0], models[1], 30),
+          BUTTONS.F.shortcut
         )
       }
 
@@ -485,16 +534,18 @@
       this.groupEnd()
     }
 
+
     /**
-     * Orthogonalize two segments
-     * This method move the node to new point
+     * Align two segments by angle
+     * This method moves the node to new point
      *
      * @param {Object} segment1
      * @param {Object} segment2
+     * @param {Number} angle
      * @return {void}
      */
-    orthogonalizeStreetGeometry (segment1, segment2) {
-      this.log('orthogonalize street geometry')
+    alignStreetGeometry (segment1, segment2, angle = 90) {
+      this.log('align street geometry ∡' + angle + '°')
 
       if (segment1.getType() !== 'segment'
         || segment2.getType() !== 'segment') {
@@ -567,7 +618,7 @@
 
       // Coordinates of points A, B and C
       // First selected segment uses it as line for calculation
-      let intersection = findIntersection(A, B, C)
+      let intersection = findIntersectionWithAngle(A, B, C, angle)
 
       // Uses OpenLayers with convertation, because
       intersection = W.userscripts.toGeoJSONGeometry(new OpenLayers.Geometry.Point( ...intersection ))
@@ -658,6 +709,93 @@
     return [x, y];
   }
 
+  /**
+   * Finds the intersection of a line (passing through A and B) and a second line
+   * that passes through point C and intersects the first line at a given angle.
+   *
+   * Note: For any angle, there are two possible intersection points. This function
+   * calculates one of them.
+   *
+   * @param {Array<number,number>} A A point on the primary line.
+   * @param {Array<number,number>} B A second point on the primary line.
+   * @param {Array<number,number>} C The point through which the second line passes.
+   * @param {number} angleDegrees The desired angle between the two lines in degrees.
+   * @returns {(Array<number,number>|null)} The coordinates of the intersection point, or null if the lines are parallel.
+   */
+  function findIntersectionWithAngle(A, B, C, angleDegrees) {
+    const [Ax, Ay] = A;
+    const [Bx, By] = B;
+    const [Cx, Cy] = C;
+
+    // Convert the desired angle from degrees to radians for trigonometric functions
+    const angleRadians = angleDegrees * (Math.PI / 180);
+
+    // If the angle is 0 or 180, the lines are parallel. No unique intersection unless C is on line AB.
+    // We check for floating point inaccuracies by seeing if sin(angle) is very close to 0.
+    if (Math.abs(Math.sin(angleRadians)) < 1e-9) {
+      console.error("Angle is 0 or 180 degrees; lines are parallel. No unique intersection.");
+      return null;
+    }
+
+    let m1; // Slope of line AB
+    let c1; // Y-intercept of line AB
+
+    // --- Handle Vertical Line Case for AB ---
+    if (Math.abs(Ax - Bx) < 1e-9) {
+      m1 = Infinity;
+      c1 = Infinity; // No y-intercept
+    } else {
+      m1 = (By - Ay) / (Bx - Ax);
+      c1 = Ay - m1 * Ax;
+    }
+
+    // Calculate the slope of the second line (m2) using the tangent formula
+    const tanAngle = Math.tan(angleRadians);
+    let m2;
+
+    if (m1 === Infinity) {
+      // If line AB is vertical, its angle is 90 degrees. The new line's slope is tan(90 ± angle).
+      // tan(90 - angle) = cot(angle) = 1 / tan(angle)
+      m2 = 1 / tanAngle;
+    } else {
+      // Using the formula: m2 = (m1 - tan(angle)) / (1 + m1 * tan(angle))
+      // This corresponds to one of the two possible lines.
+      // The other uses + in the numerator and - in the denominator.
+      const denominator = 1 + m1 * tanAngle;
+      if (Math.abs(denominator) < 1e-9) {
+        // This occurs when 1 + m1*tan(angle) = 0 => m1 = -1/tan(angle), i.e., the lines are perpendicular
+        // The slope m2 would be infinite (a vertical line).
+        m2 = Infinity;
+      } else {
+        m2 = (m1 - tanAngle) / denominator;
+      }
+    }
+
+    // Now we have the slope m2 of the line passing through C.
+    const c2 = Cy - m2 * Cx;
+
+    // --- Find the final intersection point ---
+    let x, y;
+
+    // Check for near-parallel lines which can cause massive floating point errors
+    if (Math.abs(m1 - m2) < 1e-9) {
+      console.error("Lines are parallel, no unique intersection.");
+      return null;
+    }
+
+    if (m1 === Infinity) { // Line AB is vertical
+      x = Ax;
+      y = m2 * x + c2;
+    } else if (m2 === Infinity) { // The new line is vertical
+      x = Cx;
+      y = m1 * x + c1;
+    } else { // General case
+      x = (c2 - c1) / (m1 - m2);
+      y = m1 * x + c1;
+    }
+
+    return [x, y];
+  }
 
   /**
    * Find intersection point
@@ -677,7 +815,7 @@
   }
 
   /**
-   * Detect direction
+   * Detect the direction
    * @param {Number} A
    * @param {Number} B
    * @return {Number}
