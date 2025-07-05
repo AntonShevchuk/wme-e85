@@ -34,6 +34,8 @@ Simplify method can by optimised by settings
 ![](settings.png)
 
 ## Links
-Author homepage: http://anton.shevchuk.name/  
+
+Author homepage: https://anton.shevchuk.name/  
+Author pet projects: https://hohli.com/  
 Script homepage: https://github.com/AntonShevchuk/wme-e85/  
 GreasyFork: https://greasyfork.org/en/scripts/456490-wme-e85-simplify-street-geometry
