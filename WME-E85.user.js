@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.6
+// @version      0.2.7
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -45,17 +45,23 @@
       buttons: {
         A: 'Simplify',
         B: 'Straighten',
-        C: '∡90°',
-        D: '∡60°',
-        E: '∡45°',
-        F: '∡30°',
       },
       settings: {
-        title: 'Settings',
-        description: 'Settings for simplifying segments',
-        simplifyShort: 'Remove a fragment shorter than',
-        simplifyAngle: 'If the angle is bigger than',
-        simplifyTwoShort: 'and fragments shorter than',
+        simplify: {
+          title: 'Settings',
+          description: 'Settings for simplifying segments',
+          short: 'Remove a fragment shorter than',
+          angle: 'If the angle is bigger than',
+          twoShort: 'and fragments shorter than',
+        },
+        buttons:{
+          title: 'Buttons',
+          description: 'Set the angle of the buttons',
+          C: '1st Button',
+          D: '2nd Button',
+          E: '3rd Button',
+          F: '4th Button',
+        }
       },
     },
     'uk': {
@@ -64,17 +70,23 @@
       buttons: {
         A: 'Спростити',
         B: 'Вирівняти',
-        C: '∡90°',
-        D: '∡60°',
-        E: '∡45°',
-        F: '∡30°',
       },
       settings: {
-        title: 'Налаштування',
-        description: 'Для спрощення сегментів будуть враховані наступні параметри',
-        simplifyShort: 'Видаляти фрагменти менші ніж',
-        simplifyAngle: 'Або якщо кут більше ніж',
-        simplifyTwoShort: 'та фрагменти меньші ніж',
+        simplify: {
+          title: 'Налаштування',
+          description: 'Для спрощення сегментів будуть враховані наступні параметри',
+          short: 'Видаляти фрагменти менші ніж',
+          angle: 'Або якщо кут більше ніж',
+          twoShort: 'та фрагменти меньші ніж',
+        },
+        buttons: {
+          title: 'Кнопки',
+          description: 'Налаштуйте кут для кнопок',
+          C: 'Для першої',
+          D: 'Для другої',
+          E: 'Для третьої',
+          F: 'Для четвертої',
+        }
       },
     },
     'ru': {
@@ -83,17 +95,23 @@
       buttons: {
         A: 'Упростить',
         B: 'Выровнять',
-        C: '∡90°',
-        D: '∡60°',
-        E: '∡45°',
-        F: '∡30°',
       },
       settings: {
-        title: 'Настройки',
-        description: 'Параметры для упрощения геометрии сегмента',
-        simplifyShort: 'Если фрагмент короче, чем',
-        simplifyAngle: 'Или угол больше чем',
-        simplifyTwoShort: 'и фрагменты меньше, чем',
+        simplify: {
+          title: 'Настройки',
+          description: 'Параметры для упрощения геометрии сегмента',
+          short: 'Если фрагмент короче, чем',
+          angle: 'Или угол больше чем',
+          twoShort: 'и фрагменты меньше, чем',
+        },
+        buttons: {
+          title: 'Кнопки',
+          description: 'Настройте угол для кнопок',
+          C: 'Для 1-ой кнопки',
+          D: 'Для 2-ой кнопки',
+          E: 'Для 3-ей кнопки',
+          F: 'Для 4-ой кнопки',
+        }
       },
     }
   }
@@ -126,33 +144,21 @@
       description: I18n.t(NAME).buttons.B,
       shortcut: '',
     },
-    C: {
-      title: I18n.t(NAME).buttons.C,
-      description: I18n.t(NAME).buttons.C,
-      shortcut: '',
-    },
-    D: {
-      title: I18n.t(NAME).buttons.D,
-      description: I18n.t(NAME).buttons.D,
-      shortcut: '',
-    },
-    E: {
-      title: I18n.t(NAME).buttons.E,
-      description: I18n.t(NAME).buttons.E,
-      shortcut: '',
-    },
-    F: {
-      title: I18n.t(NAME).buttons.F,
-      description: I18n.t(NAME).buttons.F,
-      shortcut: '',
-    },
   }
 
   // Default settings
   const SETTINGS = {
-    simplifyShort: 5,
-    simplifyAngle: 176,
-    simplifyTwoShort: 50,
+    simplify: {
+      short: 5,
+      angle: 176,
+      twoShort: 50,
+    },
+    buttons: {
+      C:90,
+      D:60,
+      E:40,
+      F:30
+    }
   }
 
   let WazeActionAddNode
@@ -178,23 +184,48 @@
       )
 
       // Setup options for the script
-      let fieldset = this.helper.createFieldset(I18n.t(NAME).settings.title)
-      fieldset.addText('description', I18n.t(NAME).settings.description)
-      let settings = this.settings.get()
-      for (let item in settings) {
-        if (settings.hasOwnProperty(item)) {
+      let fieldset = this.helper.createFieldset(I18n.t(NAME).settings.simplify.title)
+      fieldset.addText('description', I18n.t(NAME).settings.simplify.description)
+
+      let simplify = this.settings.get('simplify')
+      for (let item in simplify) {
+        if (simplify.hasOwnProperty(item)) {
           fieldset.addNumber(
-            'settings-' + item,
-            I18n.t(NAME).settings[item],
-            event => this.settings.set([item], event.target.value),
-            this.settings.get(item),
-            (item === 'simplifyAngle') ? 150 : 0,
-            (item === 'simplifyAngle') ? 180 : 200,
+            'settings-simplify-' + item,
+            I18n.t(NAME).settings.simplify[item],
+            event => this.settings.set(['simplify', item], event.target.value),
+            this.settings.get('simplify', item),
+            (item === 'angle') ? 150 : 0,
+            (item === 'angle') ? 180 : 200,
             1
           )
         }
       }
+
       this.tab.addElement(fieldset)
+
+
+      // Setup options for the script
+      let fieldsetButtons = this.helper.createFieldset(I18n.t(NAME).settings.buttons.title)
+      fieldsetButtons.addText('description', I18n.t(NAME).settings.buttons.description)
+
+      let settingsButtons = this.settings.get('buttons')
+      for (let item in settingsButtons) {
+        if (settingsButtons.hasOwnProperty(item)) {
+          fieldsetButtons.addNumber(
+            'settings-buttons-' + item,
+            I18n.t(NAME).settings.buttons[item],
+            event => this.settings.set(['buttons', item], event.target.value),
+            this.settings.get('buttons', item),
+            10,
+            90,
+            (item === 'F') ? 1 : 5
+          )
+        }
+      }
+
+      this.tab.addElement(fieldsetButtons)
+
       this.tab.addText(
         'info',
         '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version
@@ -291,34 +322,17 @@
       if (!W.selectionManager.getSegmentSelection().multipleConnectedComponents
         && models.length === 2) {
         panel.addDiv('align-by-angle')
-        panel.addButton(
-          'C',
-          BUTTONS.C.title,
-          BUTTONS.C.description,
-          () => this.alignStreetGeometry(models[0], models[1], 90),
-          BUTTONS.C.shortcut
-        )
-        panel.addButton(
-          'D',
-          BUTTONS.D.title,
-          BUTTONS.D.description,
-          () => this.alignStreetGeometry(models[0], models[1], 60),
-          BUTTONS.D.shortcut
-        )
-        panel.addButton(
-          'E',
-          BUTTONS.E.title,
-          BUTTONS.E.description,
-          () => this.alignStreetGeometry(models[0], models[1], 45),
-          BUTTONS.E.shortcut
-        )
-        panel.addButton(
-          'F',
-          BUTTONS.F.title,
-          BUTTONS.F.description,
-          () => this.alignStreetGeometry(models[0], models[1], 30),
-          BUTTONS.F.shortcut
-        )
+
+        for (let key of ['C','D','E','F']) {
+          let angle = this.settings.get('buttons', key)
+          panel.addButton(
+            key,
+            `∡${angle}°`,
+            `∡${angle}°`,
+            () => this.alignStreetGeometry(models[0], models[1], angle),
+            ''
+          )
+        }
       }
 
       const existingFormGroup = element.querySelector('div.form-group.e85');
@@ -362,23 +376,23 @@
       for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i]
 
-        // mark to remove a node with short START segment
-        if (node.start < this.settings.get('simplifyShort')) {
+        // mark to remove a node with a short START segment
+        if (node.start < this.settings.get('simplify', 'short')) {
           this.log('found too short segment: ' + node.start + 'm')
           removeNodes.push(i+1)
-          continue // skip next rule
+          continue // skip the next rule
         }
-        // mark to remove a node with short END segment and big ANGLE
-        if (node.angle >= this.settings.get('simplifyAngle')
-          && node.end < this.settings.get('simplifyShort')) {
+        // mark to remove a node with a short END segment and big ANGLE
+        if (node.angle >= this.settings.get('simplify', 'angle')
+          && node.end < this.settings.get('simplify', 'short')) {
           this.log('found too short fragment: ' + node.end + 'm')
           removeNodes.push(i+1)
           i++ // skip next node
-          continue // skip next rule
+          continue // skip the next rule
         }
-        // mark to remove a node with big angle and short segments
-        if (node.angle >= this.settings.get('simplifyAngle')
-          && node.start + node.end < this.settings.get('simplifyTwoShort')) {
+        // mark to remove a node with a big angle and short segments
+        if (node.angle >= this.settings.get('simplify', 'angle')
+          && node.start + node.end < this.settings.get('simplify', 'twoShort')) {
           this.log(
             'found point with short fragment: ' + node.start + ' + ' + node.end + ' = ' +
             (node.start + node.end) + 'm and angle equal to ' + node.angle + '°'
