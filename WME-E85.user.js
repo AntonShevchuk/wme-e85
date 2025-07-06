@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.7
+// @version      0.2.8
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -218,7 +218,7 @@
             event => this.settings.set(['buttons', item], event.target.value),
             this.settings.get('buttons', item),
             10,
-            90,
+            180,
             (item === 'F') ? 1 : 5
           )
         }
