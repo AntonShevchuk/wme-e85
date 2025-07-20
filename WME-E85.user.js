@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.2.8
+// @version      0.2.9
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @license      MIT License
@@ -349,12 +349,14 @@
      * @return {void}
      */
     simplifySegmentGeometry (model) {
+      this.log('check geometry of the segment with ID ' + model.getID())
+
       if (model.getGeometry().coordinates.length < 3) {
+        this.log('geometry is simple, skipped')
         return
       }
 
       this.group('simplify segment geometry')
-      this.log('check geometry of the segment with ID ' + model.getID())
       let nodes = []
 
       // calculate angles for every inside point
@@ -442,6 +444,30 @@
     }
 
     /**
+     * Remove geometry nodes on all segments on the screen
+     * @return {void}
+     */
+    simplifyOnScreen () {
+      this.group('simplify on screen segments')
+      this.simplifyStreetGeometry(
+        WME.getSegments()
+      )
+      this.groupEnd()
+    }
+
+    /**
+     * Remove geometry nodes on the selected segments
+     * @return {void}
+     */
+    simplifySelected () {
+      this.group('simplify selected segments')
+      this.simplifyStreetGeometry(
+        WME.getSelectedSegments()
+      )
+      this.groupEnd()
+    }
+
+    /**
      * Remove geometry nodes on the target segments
      * @param {Array} models
      * @return {void}
@@ -483,7 +509,7 @@
       models.forEach(segment => {
         this.log('straighten segment #' + segment.getID())
 
-        // simplify segment to straight
+        // simplify a segment to straight
         this.straightenSegmentGeometry(segment)
 
         // collect the nodes
@@ -690,40 +716,6 @@
   }
 
   /**
-   * @param {Array<number,number>} A point of line
-   * @param {Array<number,number>} B point of line
-   * @param {Array<number,number>} C point
-   * @return {(number|*)[]}
-   */
-  function findIntersection(A, B, C) {
-    // Функция для вычисления углового коэффициента прямой
-    function slope(point1, point2) {
-      return (point2[1] - point1[1]) / (point2[0] - point1[0]);
-    }
-
-    // Функция для вычисления c (точка пересечения с осью Y) для уравнения прямой
-    function intercept(point, slope) {
-      return point[1] - slope * point[0];
-    }
-
-    // Вычисляем угловой коэффициент для прямой AB
-    let mAB = slope(A, B);
-    // Вычисляем c для прямой AB
-    let cAB = intercept(A, mAB);
-
-    // Для перпендикуляра угловой коэффициент будет обратным и противоположным
-    let mPerpendicular = -1 / mAB;
-    // Вычисляем c для перпендикулярной прямой, проходящей через C
-    let cPerpendicular = intercept(C, mPerpendicular);
-
-    // Находим точку пересечения прямых
-    let x = (cPerpendicular - cAB) / (mAB - mPerpendicular);
-    let y = mAB * x + cAB;
-
-    return [x, y];
-  }
-
-  /**
    * Finds the intersection of a line (passing through A and B) and a second line
    * that passes through point C and intersects the first line at a given angle.
    *
@@ -874,7 +866,28 @@
     WazeActionUpdateSegmentGeometry = require('Waze/Action/UpdateSegmentGeometry')
 
     let Instance = new E85(NAME, SETTINGS)
+
     Instance.init(BUTTONS)
+
+    // Bind shortcut
+    WMEUI.addShortcut(
+      NAME,
+      I18n.t(NAME).description,
+      NAME,
+      I18n.t(NAME).title,
+      'A+E',
+      () => Instance.simplifySelected()
+    )
+
+    // Bind shortcut
+    WMEUI.addShortcut(
+      NAME + '-all',
+      I18n.t(NAME).description + ' [*]',
+      NAME,
+      I18n.t(NAME).title + ' [*]',
+      'A+R',
+      () => Instance.simplifyOnScreen()
+    )
 
     // setup name for a shortcut section
     WMEUIShortcut.setGroupTitle(NAME, I18n.t(NAME).title)
