@@ -45,5 +45,6 @@ Setup the buttons for change the angle between segments:
 
 Author homepage: https://anton.shevchuk.name/  
 Author pet projects: https://hohli.com/  
+Support author: https://donate.hohli.com/  
 Script homepage: https://github.com/AntonShevchuk/wme-e85/  
 GreasyFork: https://greasyfork.org/en/scripts/456490-wme-e85-simplify-street-geometry

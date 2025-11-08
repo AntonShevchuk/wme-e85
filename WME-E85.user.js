@@ -19,7 +19,6 @@
 // @require      https://update.greasyfork.org/scripts/450160/1691572/WME-Bootstrap.js
 // @require      https://update.greasyfork.org/scripts/450221/1691071/WME-Base.js
 // @require      https://update.greasyfork.org/scripts/450320/1688694/WME-UI.js
-
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -27,12 +26,10 @@
 /* global require */
 /* global $, jQuery */
 /* global I18n */
-/* global OpenLayers */
 /* global WMEBase */
 /* global WMEUI, WMEUIHelper, WMEUIHelperPanel, WMEUIHelperModal, WMEUIHelperTab */
 /* global Container, Settings, SimpleCache, Tools  */
-
-// import type { Node, Segment, Venue, WmeSDK } from "wme-sdk-typings";
+/* global Node$1, Segment, Venue, VenueAddress, WmeSDK */
 
 (function () {
   'use strict'
