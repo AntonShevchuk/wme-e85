@@ -2,7 +2,7 @@
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
 // @name:ru      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.3.0
+// @version      0.3.1
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @description:ru Упрощаем и выравниваем геометрию улиц
@@ -143,12 +143,12 @@
     A: {
       title: I18n.t(NAME).buttons.A,
       description: I18n.t(NAME).buttons.A,
-      shortcut: '',
+      shortcut: null,
     },
     B: {
       title: I18n.t(NAME).buttons.B,
       description: I18n.t(NAME).buttons.B,
-      shortcut: '',
+      shortcut: null,
     },
   }
 
@@ -273,11 +273,11 @@
       ]
 
       for (let shortcut of shortcuts) {
-        if (!this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: shortcut.shortcutKeys })) {
-          this.wmeSDK.Shortcuts.createShortcut(shortcut);
-        } else {
+        if (this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: shortcut.shortcutKeys })) {
           this.log('Shortcut already in use')
+          shortcut.shortcutKeys = null
         }
+        this.wmeSDK.Shortcuts.createShortcut(shortcut);
       }
     }
 
