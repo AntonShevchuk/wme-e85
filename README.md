@@ -1,29 +1,29 @@
-# WME E85
+# WME 🇺🇦 E85
 User script for Waze Map Editor.
 Simplify and straighten up street geometry.
 
 > This script is based on code of the old WME Simplify Street Geometry, but it works
 
-![](screenshot.png)
+![Options for a Segment](screenshot.png)
 
 ## Functions
 
 ### Simplify
 
-![](simplify.gif)
+![Simplify a Segment](simplify.gif)
 
 Removes part of the segment if it is shorter than 5 meters (default value)  
 Join segment parts if they are shorter than 15 meters (default value)
 
 ### Straighten
 
-![](straighten.gif)
+![Straighten a Segment](straighten.gif)
 
 Straighten up the street – choose one or more segments and align straight
 
 ### Orthogonalize
 
-![](ortho.gif)
+![Orthogonalize a Segment](ortho.gif)
 
 Orthogonalize two segments by 90 degrees
 
@@ -33,13 +33,13 @@ Orthogonalize two segments by 90 degrees
 
 Simplify method can be optimised by settings:
 
-![](settings.png)
+![Simplify settings](settings.png)
 
 ### Align streets by angle
 
 Setup the buttons for change the angle between segments:
 
-![](buttons.png)
+![Button's settings](buttons.png)
 
 ## Links
 
