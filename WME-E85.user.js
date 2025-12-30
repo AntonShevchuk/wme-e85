@@ -2,7 +2,7 @@
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
 // @name:ru      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.4.1
+// @version      0.4.2
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @description:ru Упрощаем и выравниваем геометрию улиц
@@ -757,7 +757,7 @@
 
       // For 180
       if (parseInt(angle) === 180) {
-        // Check current angle
+        // Check the current angle
         let current = GeoUtils.findAngle(A, B, C)
 
         if (180 === Math.round(current)) {
@@ -822,7 +822,6 @@
       }
     }
   }
-
   /**
    * A utility class for spherical geometry (geodesy).
    * Assumes points are [longitude, latitude] in degrees.
@@ -848,6 +847,7 @@
 
     /**
      * Normalizes an angle to the range -180 to +180 degrees.
+     *
      * @param {number} degrees
      * @return {number} degrees
      */
@@ -857,6 +857,7 @@
 
     /**
      * Calculates the initial bearing from pA to pB.
+     *
      * @param {[number,number]} pA - [lon, lat] of start point.
      * @param {[number,number]} pB - [lon, lat] of end point.
      * @returns {number} Initial bearing in degrees (0-360).
@@ -881,6 +882,7 @@
 
     /**
      * Calculates the interior angle at vertex p2.
+     *
      * @param {[number,number]} p1
      * @param {[number,number]} p2
      * @param {[number,number]} p3
@@ -909,6 +911,7 @@
 
     /**
      * Calculates the angular distance between two points using the Haversine formula.
+     *
      * @param {[number,number]} pA - [lon, lat] of start point.
      * @param {[number,number]} pB - [lon, lat] of end point.
      * @returns {number} The angular distance in radians.
@@ -961,64 +964,130 @@
     }
 
     /**
-     * Finds the intersection of two great-circle paths.
-     * Path 1: Defined by p1 and p2.
-     * Path 2: Defined by p3 and an internal angle at p3.
+     * Finds a point D on the great circle path AB such that the angle ADC equals the specified angle.
      *
-     * @param {[number,number]} p1 - First point of Line 1 [lon, lat].
-     * @param {[number,number]} p2 - Second point of Line 1 [lon, lat].
-     * @param {[number,number]} p3 - Start point of Line 2 [lon, lat].
-     * @param {number} angle - The SIGNED internal angle at p2 (in degrees).
-     * @returns {[number,number] | null} The intersection point [lon, lat], or null if lines are parallel.
+     * @param {[number,number]} pA - Start of line [lon, lat]
+     * @param {[number,number]} pB - End of line [lon, lat]
+     * @param {[number,number]} pC - The third point [lon, lat]
+     * @param {number} angle - The desired intersection angle at D in degrees (e.g., 90 for perpendicular).
+     * @returns {[number,number] | null} The coordinates of D, or null if no such intersection exists.
      */
-    static findIntersection(p1, p2, p3, angle) {
-      // 1. Define the triangle P1-P3-X (A-C-B)
-      //    A = p1, C = p3, B = X (intersection)
+    static findIntersection(pA, pB, pC, angle) {
+      const angleRad = GeoUtils._toRadians(angle);
 
-      // 2. Find known bearings
-      const brng1_2 = GeoUtils.getBearing(p1, p2); // Bearing of Line 1
-      const brng1_3 = GeoUtils.getBearing(p1, p3); // Bearing from p1 to p3
+      // 1. Calculate Angle A (difference in bearings)
+      const bearingAB = GeoUtils.getBearing(pA, pB);
+      const bearingAC = GeoUtils.getBearing(pA, pC);
+      const angleA_rad = GeoUtils._toRadians(bearingAC - bearingAB);
 
-      // 3. Calculate internal angles A (at p1) and C (at p3)
-      const angleA = GeoUtils._normalizeAngle(brng1_2 - brng1_3);
-      const angleB = angle
-      const angleC = GeoUtils._normalizeAngle(180 - angleA - angleB)
+      // 2. Calculate Side b (distance AC)
+      const distb_rad = GeoUtils.getAngularDistance(pA, pC);
 
-      // 4. Calculate known side b (angular distance p1-p3)
-      const dist_b = GeoUtils.getAngularDistance(p1, p3); // in radians
+      // 3. Solve for distance AD (Side c) using the Four-Part Formula (Cotangent Law)
+      // The relation for parts (Side b, Angle A, Side c, Angle D) is:
+      // sin(c) * cot(b) - cos(c) * cos(A) = sin(A) * cot(D)
 
-      // Check for parallel lines
-      if (Math.sin(GeoUtils._toRadians(angleA)) === 0 && Math.sin(GeoUtils._toRadians(angleC)) === 0) {
-        return null; // Collinear
+      // We solve this linear combination of sin(c) and cos(c) by transforming it into:
+      // R * sin(c - phi) = K
+
+      const cot_b = 1.0 / Math.tan(distb_rad);
+      const cot_D = 1.0 / Math.tan(angleRad);
+
+      // Coefficients for harmonic addition
+      // sin(c)*X - cos(c)*Y = Z
+      // X = cot_b, Y = cos(angleA), Z = sin(angleA) * cot_D
+      const X = cot_b;
+      const Y = Math.cos(angleA_rad);
+      const Z = Math.sin(angleA_rad) * cot_D;
+
+      // Calculate auxiliary angle phi and magnitude R
+      // We match form: R * sin(c - phi) = Z
+      // where R * cos(phi) = X and R * sin(phi) = Y
+      const R = Math.hypot(X, Y);
+      const phi = Math.atan2(Y, X); // atan2(y, x) -> atan2(cosA, cot_b)
+
+      // Check if solution exists (Z/R must be between -1 and 1)
+      const sin_c_minus_phi = Z / R;
+
+      if (Math.abs(sin_c_minus_phi) > 1) {
+        return null; // The requested angle is impossible to form (e.g., triangle inequality violation)
       }
 
-      // 5. Find internal angle B (at intersection X) using Law of Cosines for angles
-      const angleA_rad = GeoUtils._toRadians(angleA);
-      const angleB_rad = GeoUtils._toRadians(angleB);
-      const angleC_rad = GeoUtils._toRadians(angleC);
+      // 4. Calculate final distance c (distAD)
+      // c - phi = asin(...)
+      const distAD_rad = phi + Math.asin(sin_c_minus_phi);
 
-      // 5a. Find internal angle B (at intersection X) using Law of Cosines for angles
-      let cos_B = -Math.cos(angleA_rad) * Math.cos(angleC_rad) +
-        Math.sin(angleA_rad) * Math.sin(angleC_rad) * Math.cos(dist_b);
-      cos_B = Math.max(-1, Math.min(1, cos_B)); // Clamp
-      // angleB_rad = Math.acos(cos_B);
+      // 5. Calculate coordinates of D
+      return GeoUtils.getDestination(pA, bearingAB, distAD_rad);
+    }
 
-      // Check for parallel/collinear lines (angleB is 0 or 180)
-      if (Math.abs(Math.sin(angleB_rad)) < 1e-9) {
-        return null;
+    /**
+     * Calculates the coordinates of point D in a right-angled spherical triangle ADC,
+     * using Angle A and the hypotenuse AC.
+     * Triangle ADC has a right angle at D (angle D = 90 deg),
+     * and angle A and side AC are preserved from the original triangle ABC.
+     *
+     * @param {[number,number]} pA - [lon, lat] of point A.
+     * @param {[number,number]} pB - [lon, lat] of point B (used to calculate angle A).
+     * @param {[number,number]} pC - [lon, lat] of point C.
+     * @returns {[number,number]} The coordinates [lon, lat] of point D.
+     */
+    static findRightAngleIntersection(pA, pB, pC) {
+      // 1. Calculate the required angle at A (angle A_ABC)
+      // The angle at A in triangle ABC is the interior angle at pA.
+      const angleA_deg = GeoUtils.findAngle(pB, pA, pC);
+      const angleA_rad = GeoUtils._toRadians(angleA_deg);
+
+      // 2. Calculate the common side AC (side 'b' in spherical triangle ADC)
+      // This is the hypotenuse of the right triangle ADC.
+      const distAC_rad = GeoUtils.getAngularDistance(pA, pC);
+
+      // 3. Use Napier's Rules to find side 'c' (distance AD)
+      // In right triangle ADC: D = 90 deg, angle A is known, hypotenuse b (AC) is known.
+      // We want to find side 'c' (distance AD), which is adjacent to angle A.
+      // The correct spherical formula relating adjacent side 'c', hypotenuse 'b', and angle 'A' is:
+      // cos(A) = tan(c) / tan(b)
+
+      // Therefore, tan(c) = cos(A) * tan(b)
+      // Where:
+      // c = distAD_rad (unknown side)
+      // b = distAC_rad (hypotenuse)
+      // A = angleA_rad (known angle)
+
+      const tan_c = Math.cos(angleA_rad) * Math.tan(distAC_rad);
+      const distAD_rad = Math.atan(tan_c);
+
+      // 4. Determine the bearing from A to D
+      // The bearing from A to D is the bearing from A to C, adjusted by the angle A.
+      const bearingAC_deg = GeoUtils.getBearing(pA, pC);
+
+      // The bearing A->D must be rotated from A->C such that D forms a right angle with CD.
+      // This requires D to be along the great circle arc that is perpendicular to C->D.
+
+      // Bearing from A to B
+      const bearingAB_deg = GeoUtils.getBearing(pA, pB);
+
+      // Calculate the signed difference: bearingAC - bearingAB
+      const angleCAB_raw_diff = GeoUtils._normalizeAngle(bearingAC_deg - bearingAB_deg);
+
+      let bearingAD_deg;
+
+      // The point D is found by rotating the bearing A->C away from B, by the interior angle A.
+      if (angleCAB_raw_diff >= 0) {
+        // B is counter-clockwise from AC (left side)
+        // D needs to be on the other side of AC
+        bearingAD_deg = GeoUtils._normalizeAngle(bearingAC_deg - angleA_deg);
+      } else {
+        // B is clockwise from AC (right side)
+        // D needs to be on the other side of AC
+        bearingAD_deg = GeoUtils._normalizeAngle(bearingAC_deg + angleA_deg);
       }
 
-      // 5b. Find side c (distance p1-X) using Law of Cosines (NOT Sines)
-      //     cos(c) = (cos(C) + cos(A)cos(B)) / (sin(A)sin(B))
-      let cos_c = (Math.cos(angleC_rad) + Math.cos(angleA_rad) * cos_B) /
-        (Math.sin(angleA_rad) * Math.sin(angleB_rad));
-
-      cos_c = Math.max(-1, Math.min(1, cos_c)); // Clamp
-      const dist_c = Math.acos(cos_c); // This is dist_p1_X in radians
-
-      // 6. Calculate the final intersection point X
-      //    We have start (p1), bearing (brng1_X), and distance (dist_c)
-      return GeoUtils.getDestination(p1, brng1_2, dist_c);
+      // 5. Calculate the destination point D
+      // Start point: pA
+      // Bearing: bearingAD_deg
+      // Distance: distAD_rad
+      return GeoUtils.getDestination(pA, bearingAD_deg, distAD_rad);
     }
   }
 
