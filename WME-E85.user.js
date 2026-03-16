@@ -2,7 +2,7 @@
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
 // @name:ru      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.4.2
+// @version      0.4.3
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @description:ru Упрощаем и выравниваем геометрию улиц
@@ -32,7 +32,7 @@
 /* global Node$1, Segment, Venue, VenueAddress, WmeSDK */
 
 (function () {
-  'use strict'
+  'use strict';
 
   // Script name, uses as unique index
   const NAME = 'E85'
@@ -45,6 +45,7 @@
       buttons: {
         A: 'Simplify',
         B: 'Straighten',
+        H: 'Doglegs',
       },
       settings: {
         simplify: {
@@ -62,7 +63,13 @@
           E: '3rd Button',
           F: '4th Button',
           G: '5th Button',
-        }
+        },
+        microDoglegs: {
+          title: 'Micro Doglegs',
+          description: 'Settings for removing micro doglegs',
+          maxDistance: 'Maximum distance from junction',
+          minDistance: 'Minimum distance from junction (0 to disable)',
+        },
       },
     },
     'uk': {
@@ -71,6 +78,7 @@
       buttons: {
         A: 'Спростити',
         B: 'Вирівняти',
+        H: 'Доглеги',
       },
       settings: {
         simplify: {
@@ -88,7 +96,13 @@
           E: 'Для третьої',
           F: 'Для четвертої',
           G: 'Для п\'ятої',
-        }
+        },
+        microDoglegs: {
+          title: 'Мікро доглеги',
+          description: 'Налаштування для видалення мікро доглегів',
+          maxDistance: 'Максимальна відстань від перетину',
+          minDistance: 'Мінімальна відстань від перетину (0 для вимкнення)',
+        },
       },
     },
     'ru': {
@@ -97,6 +111,7 @@
       buttons: {
         A: 'Упростить',
         B: 'Выровнять',
+        H: 'Доглеги',
       },
       settings: {
         simplify: {
@@ -114,7 +129,13 @@
           E: 'Для 3-ей кнопки',
           F: 'Для 4-ой кнопки',
           G: 'Для 5-ой кнопки',
-        }
+        },
+        microDoglegs: {
+          title: 'Микро доглеги',
+          description: 'Настройки для удаления микро доглегов',
+          maxDistance: 'Максимальное расстояние от перекрёстка',
+          minDistance: 'Минимальное расстояние от перекрёстка (0 для отключения)',
+        },
       },
     }
   }
@@ -128,11 +149,12 @@
     'button.e85.e85-D { background-color: #fbb; margin: 2px 2px 0 0 }' +
     'button.e85.e85-E { background-color: #f99; margin: 2px 2px 0 0 }' +
     'button.e85.e85-F { background-color: #f77; margin: 2px 2px 0 0 }' +
-    'button.e85.e85-A:disabled, button.e85.e85-B:disabled { background-color: #ccc }' +
+    'button.e85.e85-H { background-color: #f9f; margin-right: 2px; color: #fff }' +
+    'button.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-H:disabled { background-color: #ccc }' +
     '.e85 legend { cursor:pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }' +
     '.e85 fieldset { border: 1px solid #ddd; padding: 8px; }' +
     '.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; font-size: 13px; }' +
-    '.e85 fieldset.e85 div.controls input[type="number"] { float:right; wight: 32px }' +
+    '.e85 fieldset.e85 div.controls input[type="number"] { float:right; width: 32px }' +
     'p.e85-info { border-top: 1px solid #ccc; color: #777; font-size: x-small; margin-top: 15px; padding-top: 10px; text-align: center; }' +
     '#sidebar p.e85-blue { background-color:#0057B8;color:white;height:32px;text-align:center;line-height:32px;font-size:24px;margin:0; }' +
     '#sidebar p.e85-yellow { background-color:#FFDD00;color:black;height:32px;text-align:center;line-height:32px;font-size:24px;margin:0; }'
@@ -150,6 +172,11 @@
       description: I18n.t(NAME).buttons.B,
       shortcut: null,
     },
+    H: {
+      title: I18n.t(NAME).buttons.H,
+      description: I18n.t(NAME).buttons.H,
+      shortcut: null,
+    },
   }
 
   // Default settings
@@ -164,6 +191,10 @@
       D: 90,
       E: 60,
       F: 30
+    },
+    microDoglegs: {
+      maxDistance: 3,
+      minDistance: 0,
     }
   }
 
@@ -241,6 +272,28 @@
 
       tab.addElement(fieldsetButtons)
 
+      // Micro doglegs settings
+      let fieldsetDoglegs = this.helper.createFieldset(I18n.t(NAME).settings.microDoglegs.title)
+      fieldsetDoglegs.addText('description', I18n.t(NAME).settings.microDoglegs.description)
+
+      fieldsetDoglegs.addNumber(
+        'settings-microdoglegs-maxdistance',
+        I18n.t(NAME).settings.microDoglegs.maxDistance,
+        event => this.settings.set(['microDoglegs', 'maxDistance'], event.target.value),
+        this.settings.get('microDoglegs', 'maxDistance'),
+        1, 20, 1
+      )
+
+      fieldsetDoglegs.addNumber(
+        'settings-microdoglegs-mindistance',
+        I18n.t(NAME).settings.microDoglegs.minDistance,
+        event => this.settings.set(['microDoglegs', 'minDistance'], event.target.value),
+        this.settings.get('microDoglegs', 'minDistance'),
+        0, 20, 1
+      )
+
+      tab.addElement(fieldsetDoglegs)
+
       tab.addText(
         'info',
         '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version
@@ -267,7 +320,7 @@
         {
           description: I18n.t(NAME).description + ' [*]',
           shortcutId: this.id + '-all',
-          shortcutKeys: 'A+R',
+          shortcutKeys: 'A+Y',
           callback: () => this.simplifyAll()
         },
       ]
@@ -310,9 +363,17 @@
           () => this.straightenSegmentGeometry(model),
         )
 
+        let doglegButton = panel.addButton(
+          'H',
+          BUTTONS.H.title,
+          BUTTONS.H.description,
+          () => this.removeMicroDoglegs(model),
+        )
+
         if (model.geometry.coordinates.length < 3) {
           simplifyButton.html().disabled = true
           straightenButton.html().disabled = true
+          doglegButton.html().disabled = true
         }
 
         const existingFormGroup = element.querySelector('div.form-group.e85');
@@ -361,6 +422,13 @@
         () => this.straightenStreetGeometry(models)
       )
 
+      panel.addButton(
+        'H',
+        BUTTONS.H.title,
+        BUTTONS.H.description,
+        () => this.removeMicroDoglegsMultiple(models)
+      )
+
       let modelWithComponents = models.filter(model => model.geometry.coordinates.length > 2)
       if (modelWithComponents.length === 0) {
         simplifyButton.html().disabled = true
@@ -371,7 +439,7 @@
         let second = models[1]
 
         // check connections of the first segment
-        // trying to find second one
+        // trying to find the second one
         let connections = []
         connections = connections.concat(this.wmeSDK.DataModel.Segments.getConnectedSegments({ segmentId: first.id }))
         connections = connections.concat(this.wmeSDK.DataModel.Segments.getConnectedSegments({ segmentId: first.id, reverseDirection: true }))
@@ -565,7 +633,7 @@
        */
       function getIntersectCoordinates (A, B, C, D) {
 
-        let r = [2]
+        let r = []
         r[1] = -1.0 * (C * B - A * D) / (A * A + B * B)
         r[0] = (-r[1] * (B + A) - C + D) / (A - B)
 
@@ -671,7 +739,7 @@
 
     /**
      * Align two segments by angle
-     * This method moves the node to new point
+     * This method moves the node to a new point
      *
      * @param {Segment} first
      * @param {Segment} second
@@ -756,7 +824,7 @@
       let intersection
 
       // For 180
-      if (parseInt(angle) === 180) {
+      if (parseInt(angle, 10) === 180) {
         // Check the current angle
         let current = GeoUtils.findAngle(A, B, C)
 
@@ -804,7 +872,7 @@
     }
 
     /**
-     * Straighten up segment, remove all geometry nodes except first and last
+     * Straighten up the segment, remove all geometry nodes except first and last
      * @param {Segment} segment
      */
     straightenSegmentGeometry (segment) {
@@ -821,7 +889,87 @@
         })
       }
     }
+
+    /**
+     * Remove micro doglegs from multiple segments
+     * @param {Array<Segment>} models
+     */
+    removeMicroDoglegsMultiple (models) {
+      this.group('remove micro doglegs on multiple segments')
+      let count = 0
+      for (let i = 0; i < models.length; i++) {
+        count += this.removeMicroDoglegs(models[i], true)
+      }
+      this.log(`removed micro doglegs from ${count} segments`)
+      this.groupEnd()
+    }
+
+    /**
+     * Remove micro doglegs (geometry nodes very close to junctions) from a single segment
+     * @param {Segment} model
+     * @param {boolean} silent
+     * @return {number} 1 if changes were made, 0 otherwise
+     */
+    removeMicroDoglegs (model, silent = false) {
+      if (!silent) this.group('remove micro doglegs')
+
+      let coordinates = model.geometry.coordinates
+      if (coordinates.length < 3) {
+        if (!silent) {
+          this.log('segment has no intermediate geometry nodes, skipped')
+          this.groupEnd()
+        }
+        return 0
+      }
+
+      let maxDist = Number(this.settings.get('microDoglegs', 'maxDistance'))
+      let minDist = Number(this.settings.get('microDoglegs', 'minDistance'))
+
+      // Get junction node coordinates
+      let fromNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: model.fromNodeId })
+      let toNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: model.toNodeId })
+
+      let removeIndices = []
+
+      // Check first intermediate geometry node (index 1) — distance from fromNode
+      let distFromStart = GeoUtils.getDistance(fromNode.geometry.coordinates, coordinates[1])
+      if (!silent) this.log(`first node distance from junction: ${distFromStart.toFixed(2)}m`)
+      if (distFromStart <= maxDist && (minDist === 0 || distFromStart >= minDist)) {
+        removeIndices.push(1)
+      }
+
+      // Check last intermediate geometry node (index length-2) — distance from toNode
+      let lastIdx = coordinates.length - 2
+      if (lastIdx > 1 || (lastIdx === 1 && !removeIndices.includes(1))) {
+        let distFromEnd = GeoUtils.getDistance(toNode.geometry.coordinates, coordinates[lastIdx])
+        if (!silent) this.log(`last node distance from junction: ${distFromEnd.toFixed(2)}m`)
+        if (distFromEnd <= maxDist && (minDist === 0 || distFromEnd >= minDist)) {
+          removeIndices.push(lastIdx)
+        }
+      }
+
+      if (removeIndices.length) {
+        let geometry = structuredClone(model.geometry)
+        geometry.coordinates = coordinates.filter((_, i) => !removeIndices.includes(i))
+
+        this.wmeSDK.DataModel.Segments.updateSegment({
+          segmentId: model.id, geometry
+        })
+        if (!silent) {
+          this.log(`removed ${removeIndices.length} micro dogleg(s)`)
+          this.groupEnd()
+        }
+        return 1
+      }
+
+      if (!silent) {
+        this.log('no micro doglegs found')
+        this.groupEnd()
+      }
+      return 0
+    }
   }
+
   /**
    * A utility class for spherical geometry (geodesy).
    * Assumes points are [longitude, latitude] in degrees.
