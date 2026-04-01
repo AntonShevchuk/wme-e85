@@ -176,13 +176,13 @@ export class E85 extends WMEBase {
           () => this.removeMicroDoglegs(model),
         )
         if (model.geometry.coordinates.length < 3) {
-          doglegButton.html().disabled = true
+          (doglegButton.html() as HTMLButtonElement).disabled = true
         }
       }
 
       if (model.geometry.coordinates.length < 3) {
-        simplifyButton.html().disabled = true
-        straightenButton.html().disabled = true
+        (simplifyButton.html() as HTMLButtonElement).disabled = true;
+        (straightenButton.html() as HTMLButtonElement).disabled = true
       }
 
       const existingFormGroup = element.querySelector('div.form-group.e85');
@@ -238,7 +238,7 @@ export class E85 extends WMEBase {
 
     let modelWithComponents = models.filter(model => model.geometry.coordinates.length > 2)
     if (modelWithComponents.length === 0) {
-      simplifyButton.html().disabled = true
+      (simplifyButton.html() as HTMLButtonElement).disabled = true
     }
 
     if (models.length === 2) {
@@ -556,7 +556,7 @@ export class E85 extends WMEBase {
     let intersection
 
     // For 180
-    if (parseInt(angle, 10) === 180) {
+    if (Number(angle) === 180) {
       let current = GeoUtils.findAngle(A, B, C)
 
       if (180 === Math.round(current)) {
