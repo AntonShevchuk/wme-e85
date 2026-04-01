@@ -32,7 +32,7 @@
             buttons: {
                 A: 'Simplify',
                 B: 'Straighten',
-                H: 'Doglegs',
+                M: 'Doglegs',
             },
             settings: {
                 simplify: {
@@ -71,7 +71,7 @@
             buttons: {
                 A: 'Спростити',
                 B: 'Вирівняти',
-                H: 'Доглеги',
+                M: 'Доглеги',
             },
             settings: {
                 simplify: {
@@ -110,7 +110,7 @@
             buttons: {
                 A: 'Упростить',
                 B: 'Выровнять',
-                H: 'Доглеги',
+                M: 'Доглеги',
             },
             settings: {
                 simplify: {
@@ -157,9 +157,9 @@
                 description: I18n.t(NAME).buttons.B,
                 shortcut: null,
             },
-            H: {
-                title: I18n.t(NAME).buttons.H,
-                description: I18n.t(NAME).buttons.H,
+            M: {
+                title: I18n.t(NAME).buttons.M,
+                description: I18n.t(NAME).buttons.M,
                 shortcut: null,
             },
         };
@@ -278,7 +278,7 @@
                 let simplifyButton = panel.addButton('A', this.buttons.A.title, this.buttons.A.description, () => this.simplifySegmentGeometry(model));
                 let straightenButton = panel.addButton('B', this.buttons.B.title, this.buttons.B.description, () => this.straightenSegmentGeometry(model));
                 if (this.settings.get('microDoglegs', 'enabled')) {
-                    let doglegButton = panel.addButton('H', this.buttons.H.title, this.buttons.H.description, () => this.removeMicroDoglegs(model));
+                    let doglegButton = panel.addButton('H', this.buttons.M.title, this.buttons.M.description, () => this.removeMicroDoglegs(model));
                     if (model.geometry.coordinates.length < 3) {
                         doglegButton.html().disabled = true;
                     }
@@ -688,7 +688,7 @@
         }
     }
 
-    var css_248z = "button.e85.e85-A {\n    background-color: #0f9;\n    margin-right: 2px\n}\n\nbutton.e85.e85-B {\n    background-color: #09f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-C {\n    background-color: #fdd;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-D {\n    background-color: #fbb;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-E {\n    background-color: #f99;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-F {\n    background-color: #f77;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-H {\n    background-color: #f9f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-H:disabled {\n    background-color: #ccc\n}\n\n.e85 legend {\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: bold;\n    width: auto;\n    text-align: right;\n    border: 0;\n    margin: 0;\n    padding: 0 8px;\n}\n\n.e85 fieldset {\n    border: 1px solid #ddd;\n    padding: 8px;\n}\n\n.e85 fieldset.e85 div.controls label {\n    white-space: normal;\n    font-weight: normal;\n    line-height: 32px;\n    font-size: 13px;\n}\n\n.e85 fieldset.e85 div.controls input[type=\"number\"] {\n    float: right;\n    width: 50px;\n    text-align: right;\n}\n\n.e85 .button-toolbar {\n    padding: 8px;\n}\n\np.e85-info {\n    border-top: 1px solid #ccc;\n    color: #777;\n    font-size: x-small;\n    margin-top: 15px;\n    padding-top: 10px;\n    text-align: center;\n}\n\n#sidebar p.e85-blue {\n    background-color: #0057B8;\n    color: white;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n\n#sidebar p.e85-yellow {\n    background-color: #FFDD00;\n    color: black;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n";
+    var css_248z = "button.e85.e85-A {\n    background-color: #0f9;\n    margin-right: 2px\n}\n\nbutton.e85.e85-B {\n    background-color: #09f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-C {\n    background-color: #fdd;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-D {\n    background-color: #fbb;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-E {\n    background-color: #f99;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-F {\n    background-color: #f77;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-G {\n    background-color: #f55;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-H {\n    background-color: #f33;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-I {\n    background-color: #e22;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-J {\n    background-color: #d11;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-K {\n    background-color: #c00;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-L {\n    background-color: #a00;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-M {\n    background-color: #f9f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled {\n    background-color: #ccc\n}\n\n.e85 legend {\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: bold;\n    width: auto;\n    text-align: right;\n    border: 0;\n    margin: 0;\n    padding: 0 8px;\n}\n\n.e85 fieldset {\n    border: 1px solid #ddd;\n    padding: 8px;\n}\n\n.e85 fieldset.e85 div.controls label {\n    white-space: normal;\n    font-weight: normal;\n    line-height: 32px;\n    font-size: 13px;\n}\n\n.e85 fieldset.e85 div.controls input[type=\"number\"] {\n    float: right;\n    width: 50px;\n    text-align: right;\n}\n\n.e85 .button-toolbar {\n    padding: 8px;\n}\n\np.e85-info {\n    border-top: 1px solid #ccc;\n    color: #777;\n    font-size: x-small;\n    margin-top: 15px;\n    padding-top: 10px;\n    text-align: center;\n}\n\n#sidebar p.e85-blue {\n    background-color: #0057B8;\n    color: white;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n\n#sidebar p.e85-yellow {\n    background-color: #FFDD00;\n    color: black;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n";
 
     WMEUI.addTranslation(NAME, TRANSLATION);
     WMEUI.addStyle(css_248z);

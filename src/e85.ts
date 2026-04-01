@@ -171,8 +171,8 @@ export class E85 extends WMEBase {
       if (this.settings.get('microDoglegs', 'enabled')) {
         let doglegButton = panel.addButton(
           'H',
-          this.buttons.H.title,
-          this.buttons.H.description,
+          this.buttons.M.title,
+          this.buttons.M.description,
           () => this.removeMicroDoglegs(model),
         )
         if (model.geometry.coordinates.length < 3) {

@@ -7,7 +7,7 @@ export const TRANSLATION = {
     buttons: {
       A: 'Simplify',
       B: 'Straighten',
-      H: 'Doglegs',
+      M: 'Doglegs',
     },
     settings: {
       simplify: {
@@ -46,7 +46,7 @@ export const TRANSLATION = {
     buttons: {
       A: 'Спростити',
       B: 'Вирівняти',
-      H: 'Доглеги',
+      M: 'Доглеги',
     },
     settings: {
       simplify: {
@@ -85,7 +85,7 @@ export const TRANSLATION = {
     buttons: {
       A: 'Упростить',
       B: 'Выровнять',
-      H: 'Доглеги',
+      M: 'Доглеги',
     },
     settings: {
       simplify: {

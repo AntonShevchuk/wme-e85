@@ -12,9 +12,9 @@ export function getButtons () {
       description: I18n.t(NAME).buttons.B,
       shortcut: null,
     },
-    H: {
-      title: I18n.t(NAME).buttons.H,
-      description: I18n.t(NAME).buttons.H,
+    M: {
+      title: I18n.t(NAME).buttons.M,
+      description: I18n.t(NAME).buttons.M,
       shortcut: null,
     },
   }
