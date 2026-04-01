@@ -11,64 +11,75 @@ button.e85.e85-B {
 
 button.e85.e85-C {
     background-color: #fdd;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0
 }
 
 button.e85.e85-D {
     background-color: #fbb;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0
 }
 
 button.e85.e85-E {
     background-color: #f99;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0
 }
 
 button.e85.e85-F {
     background-color: #f77;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0
 }
 
 button.e85.e85-G {
     background-color: #f55;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0
 }
 
 button.e85.e85-H {
     background-color: #f33;
-    padding: 3px 14px;
-    margin: 2px 2px 0 0
+    width: 50px;
+    padding: 3px;
+    margin: 2px 2px 0 0;
+    color: #fff
 }
 
 button.e85.e85-I {
     background-color: #e22;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0;
     color: #fff
 }
 
 button.e85.e85-J {
     background-color: #d11;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0;
     color: #fff
 }
 
 button.e85.e85-K {
     background-color: #c00;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0;
     color: #fff
 }
 
 button.e85.e85-L {
     background-color: #a00;
-    padding: 3px 14px;
+    width: 50px;
+    padding: 3px;
     margin: 2px 2px 0 0;
     color: #fff
 }
