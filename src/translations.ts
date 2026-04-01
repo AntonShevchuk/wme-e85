@@ -29,6 +29,7 @@ export const TRANSLATION = {
       microDoglegs: {
         title: 'Micro Doglegs',
         description: 'Settings for removing micro doglegs',
+        enabled: 'Enable doglegs button',
         maxDistance: 'Maximum distance from junction',
         minDistance: 'Minimum distance from junction (0 to disable)',
       },
@@ -62,6 +63,7 @@ export const TRANSLATION = {
       microDoglegs: {
         title: 'Мікро доглеги',
         description: 'Налаштування для видалення мікро доглегів',
+        enabled: 'Увімкнути кнопку доглегів',
         maxDistance: 'Максимальна відстань від перетину',
         minDistance: 'Мінімальна відстань від перетину (0 для вимкнення)',
       },
@@ -95,6 +97,7 @@ export const TRANSLATION = {
       microDoglegs: {
         title: 'Микро доглеги',
         description: 'Настройки для удаления микро доглегов',
+        enabled: 'Включить кнопку доглегов',
         maxDistance: 'Максимальное расстояние от перекрёстка',
         minDistance: 'Минимальное расстояние от перекрёстка (0 для отключения)',
       },

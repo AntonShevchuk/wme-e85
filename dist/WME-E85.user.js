@@ -54,6 +54,7 @@
                 microDoglegs: {
                     title: 'Micro Doglegs',
                     description: 'Settings for removing micro doglegs',
+                    enabled: 'Enable doglegs button',
                     maxDistance: 'Maximum distance from junction',
                     minDistance: 'Minimum distance from junction (0 to disable)',
                 },
@@ -87,6 +88,7 @@
                 microDoglegs: {
                     title: 'Мікро доглеги',
                     description: 'Налаштування для видалення мікро доглегів',
+                    enabled: 'Увімкнути кнопку доглегів',
                     maxDistance: 'Максимальна відстань від перетину',
                     minDistance: 'Мінімальна відстань від перетину (0 для вимкнення)',
                 },
@@ -120,6 +122,7 @@
                 microDoglegs: {
                     title: 'Микро доглеги',
                     description: 'Настройки для удаления микро доглегов',
+                    enabled: 'Включить кнопку доглегов',
                     maxDistance: 'Максимальное расстояние от перекрёстка',
                     minDistance: 'Минимальное расстояние от перекрёстка (0 для отключения)',
                 },
@@ -159,6 +162,7 @@
             F: 30
         },
         microDoglegs: {
+            enabled: false,
             maxDistance: 3,
             minDistance: 0,
         }
@@ -206,6 +210,7 @@
             // Micro doglegs settings
             let fieldsetDoglegs = this.helper.createFieldset(I18n.t(NAME).settings.microDoglegs.title);
             fieldsetDoglegs.addText('description', I18n.t(NAME).settings.microDoglegs.description);
+            fieldsetDoglegs.addCheckbox('settings-microdoglegs-enabled', I18n.t(NAME).settings.microDoglegs.enabled, event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked), this.settings.get('microDoglegs', 'enabled'));
             fieldsetDoglegs.addNumber('settings-microdoglegs-maxdistance', I18n.t(NAME).settings.microDoglegs.maxDistance, event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'maxDistance'), 1, 20, 1);
             fieldsetDoglegs.addNumber('settings-microdoglegs-mindistance', I18n.t(NAME).settings.microDoglegs.minDistance, event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'minDistance'), 0, 20, 1);
             tab.addElement(fieldsetDoglegs);
@@ -251,11 +256,15 @@
                 let panel = this.helper.createPanel(I18n.t(this.name).title);
                 let simplifyButton = panel.addButton('A', this.buttons.A.title, this.buttons.A.description, () => this.simplifySegmentGeometry(model));
                 let straightenButton = panel.addButton('B', this.buttons.B.title, this.buttons.B.description, () => this.straightenSegmentGeometry(model));
-                let doglegButton = panel.addButton('H', this.buttons.H.title, this.buttons.H.description, () => this.removeMicroDoglegs(model));
+                if (this.settings.get('microDoglegs', 'enabled')) {
+                    let doglegButton = panel.addButton('H', this.buttons.H.title, this.buttons.H.description, () => this.removeMicroDoglegs(model));
+                    if (model.geometry.coordinates.length < 3) {
+                        doglegButton.html().disabled = true;
+                    }
+                }
                 if (model.geometry.coordinates.length < 3) {
                     simplifyButton.html().disabled = true;
                     straightenButton.html().disabled = true;
-                    doglegButton.html().disabled = true;
                 }
                 const existingFormGroup = element.querySelector('div.form-group.e85');
                 if (existingFormGroup) {
@@ -284,7 +293,9 @@
             let simplifyButton = panel.addButton('A', this.buttons.A.title, this.buttons.A.description, () => this.simplifyStreetGeometry(models));
             // Don't straighten multiple components
             panel.addButton('B', this.buttons.B.title, this.buttons.B.description, () => this.straightenStreetGeometry(models));
-            panel.addButton('H', this.buttons.H.title, this.buttons.H.description, () => this.removeMicroDoglegsMultiple(models));
+            if (this.settings.get('microDoglegs', 'enabled')) {
+                panel.addButton('H', this.buttons.H.title, this.buttons.H.description, () => this.removeMicroDoglegsMultiple(models));
+            }
             let modelWithComponents = models.filter(model => model.geometry.coordinates.length > 2);
             if (modelWithComponents.length === 0) {
                 simplifyButton.html().disabled = true;

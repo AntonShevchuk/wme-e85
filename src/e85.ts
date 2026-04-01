@@ -78,6 +78,13 @@ export class E85 extends WMEBase {
     let fieldsetDoglegs = this.helper.createFieldset(I18n.t(NAME).settings.microDoglegs.title)
     fieldsetDoglegs.addText('description', I18n.t(NAME).settings.microDoglegs.description)
 
+    fieldsetDoglegs.addCheckbox(
+      'settings-microdoglegs-enabled',
+      I18n.t(NAME).settings.microDoglegs.enabled,
+      event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked),
+      this.settings.get('microDoglegs', 'enabled')
+    )
+
     fieldsetDoglegs.addNumber(
       'settings-microdoglegs-maxdistance',
       I18n.t(NAME).settings.microDoglegs.maxDistance,
@@ -161,17 +168,21 @@ export class E85 extends WMEBase {
         () => this.straightenSegmentGeometry(model),
       )
 
-      let doglegButton = panel.addButton(
-        'H',
-        this.buttons.H.title,
-        this.buttons.H.description,
-        () => this.removeMicroDoglegs(model),
-      )
+      if (this.settings.get('microDoglegs', 'enabled')) {
+        let doglegButton = panel.addButton(
+          'H',
+          this.buttons.H.title,
+          this.buttons.H.description,
+          () => this.removeMicroDoglegs(model),
+        )
+        if (model.geometry.coordinates.length < 3) {
+          doglegButton.html().disabled = true
+        }
+      }
 
       if (model.geometry.coordinates.length < 3) {
         simplifyButton.html().disabled = true
         straightenButton.html().disabled = true
-        doglegButton.html().disabled = true
       }
 
       const existingFormGroup = element.querySelector('div.form-group.e85');
@@ -216,12 +227,14 @@ export class E85 extends WMEBase {
       () => this.straightenStreetGeometry(models)
     )
 
-    panel.addButton(
-      'H',
-      this.buttons.H.title,
-      this.buttons.H.description,
-      () => this.removeMicroDoglegsMultiple(models)
-    )
+    if (this.settings.get('microDoglegs', 'enabled')) {
+      panel.addButton(
+        'H',
+        this.buttons.H.title,
+        this.buttons.H.description,
+        () => this.removeMicroDoglegsMultiple(models)
+      )
+    }
 
     let modelWithComponents = models.filter(model => model.geometry.coordinates.length > 2)
     if (modelWithComponents.length === 0) {

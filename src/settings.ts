@@ -33,6 +33,7 @@ export const SETTINGS = {
     F: 30
   },
   microDoglegs: {
+    enabled: false,
     maxDistance: 3,
     minDistance: 0,
   }
