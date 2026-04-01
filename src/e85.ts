@@ -65,9 +65,9 @@ export class E85 extends WMEBase {
           I18n.t(NAME).settings.buttons[item],
           event => this.settings.set(['buttons', item], Number(event.target.value)),
           this.settings.get('buttons', item),
-          10,
+          0,
           180,
-          (item === 'F') ? 1 : 5
+          5
         )
       }
     }
@@ -255,15 +255,18 @@ export class E85 extends WMEBase {
       if (connections.indexOf(second.id) !== -1) {
         panel.addDiv('align-by-angle')
 
-        for (let key of ['C','D','E','F']) {
-          let angle = this.settings.get('buttons', key)
-          panel.addButton(
-            key,
-            `\u2221${angle}\u00B0`,
-            `\u2221${angle}\u00B0`,
-            () => this.alignStreetGeometry(first, second, angle),
-            ''
-          )
+        let settingsButtons = this.settings.get('buttons')
+        for (let key in settingsButtons) {
+          if (settingsButtons.hasOwnProperty(key)) {
+            let angle = Number(settingsButtons[key])
+            if (angle === 0) continue
+            panel.addButton(
+              key,
+              `\u2221${angle}\u00B0`,
+              `\u2221${angle}\u00B0`,
+              () => this.alignStreetGeometry(first, second, angle),
+            )
+          }
         }
       }
     }

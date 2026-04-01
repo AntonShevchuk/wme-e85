@@ -30,7 +30,13 @@ export const SETTINGS = {
     C: 180,
     D: 90,
     E: 60,
-    F: 30
+    F: 30,
+    G: 15,
+    H: 0,
+    I: 0,
+    J: 0,
+    K: 0,
+    L: 0,
   },
   microDoglegs: {
     enabled: false,

@@ -50,13 +50,18 @@
                     E: '3rd Button',
                     F: '4th Button',
                     G: '5th Button',
+                    H: '6th Button',
+                    I: '7th Button',
+                    J: '8th Button',
+                    K: '9th Button',
+                    L: '10th Button',
                 },
                 microDoglegs: {
                     title: 'Micro Doglegs',
                     description: 'Settings for removing micro doglegs',
                     enabled: 'Enable doglegs button',
-                    maxDistance: 'Maximum distance from junction',
-                    minDistance: 'Minimum distance from junction (0 to disable)',
+                    maxDistance: 'Max distance from junction',
+                    minDistance: 'Min distance from junction (0 to disable)',
                 },
             },
         },
@@ -84,6 +89,11 @@
                     E: 'Для третьої',
                     F: 'Для четвертої',
                     G: 'Для п\'ятої',
+                    H: 'Для шостої',
+                    I: 'Для сьомої',
+                    J: 'Для восьмої',
+                    K: 'Для дев\'ятої',
+                    L: 'Для десятої',
                 },
                 microDoglegs: {
                     title: 'Мікро доглеги',
@@ -118,6 +128,11 @@
                     E: 'Для 3-ей кнопки',
                     F: 'Для 4-ой кнопки',
                     G: 'Для 5-ой кнопки',
+                    H: 'Для 6-ой кнопки',
+                    I: 'Для 7-ой кнопки',
+                    J: 'Для 8-ой кнопки',
+                    K: 'Для 9-ой кнопки',
+                    L: 'Для 10-ой кнопки',
                 },
                 microDoglegs: {
                     title: 'Микро доглеги',
@@ -159,7 +174,13 @@
             C: 180,
             D: 90,
             E: 60,
-            F: 30
+            F: 30,
+            G: 15,
+            H: 0,
+            I: 0,
+            J: 0,
+            K: 0,
+            L: 0,
         },
         microDoglegs: {
             enabled: false,
@@ -203,7 +224,7 @@
             let settingsButtons = this.settings.get('buttons');
             for (let item in settingsButtons) {
                 if (settingsButtons.hasOwnProperty(item)) {
-                    fieldsetButtons.addNumber('settings-buttons-' + item, I18n.t(NAME).settings.buttons[item], event => this.settings.set(['buttons', item], Number(event.target.value)), this.settings.get('buttons', item), 10, 180, (item === 'F') ? 1 : 5);
+                    fieldsetButtons.addNumber('settings-buttons-' + item, I18n.t(NAME).settings.buttons[item], event => this.settings.set(['buttons', item], Number(event.target.value)), this.settings.get('buttons', item), 0, 180, 5);
                 }
             }
             tab.addElement(fieldsetButtons);
@@ -311,9 +332,14 @@
                 connections = connections.map(segment => segment.id);
                 if (connections.indexOf(second.id) !== -1) {
                     panel.addDiv('align-by-angle');
-                    for (let key of ['C', 'D', 'E', 'F']) {
-                        let angle = this.settings.get('buttons', key);
-                        panel.addButton(key, `\u2221${angle}\u00B0`, `\u2221${angle}\u00B0`, () => this.alignStreetGeometry(first, second, angle), '');
+                    let settingsButtons = this.settings.get('buttons');
+                    for (let key in settingsButtons) {
+                        if (settingsButtons.hasOwnProperty(key)) {
+                            let angle = Number(settingsButtons[key]);
+                            if (angle === 0)
+                                continue;
+                            panel.addButton(key, `\u2221${angle}\u00B0`, `\u2221${angle}\u00B0`, () => this.alignStreetGeometry(first, second, angle));
+                        }
                     }
                 }
             }
@@ -662,7 +688,7 @@
         }
     }
 
-    var css_248z = "button.e85.e85-A { background-color: #0f9; margin-right: 2px }\nbutton.e85.e85-B { background-color: #09f; margin-right: 20px; color: #fff }\nbutton.e85.e85-C { background-color: #fdd; margin: 2px 2px 0 0 }\nbutton.e85.e85-D { background-color: #fbb; margin: 2px 2px 0 0 }\nbutton.e85.e85-E { background-color: #f99; margin: 2px 2px 0 0 }\nbutton.e85.e85-F { background-color: #f77; margin: 2px 2px 0 0 }\nbutton.e85.e85-H { background-color: #f9f; margin-right: 2px; color: #fff }\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-H:disabled { background-color: #ccc }\n.e85 legend { cursor: pointer; font-size: 12px; font-weight: bold; width: auto; text-align: right; border: 0; margin: 0; padding: 0 8px; }\n.e85 fieldset { border: 1px solid #ddd; padding: 8px; }\n.e85 fieldset.e85 div.controls label { white-space: normal; font-weight: normal; line-height: 32px; font-size: 13px; }\n.e85 fieldset.e85 div.controls input[type=\"number\"] { float: right; width: 32px }\np.e85-info { border-top: 1px solid #ccc; color: #777; font-size: x-small; margin-top: 15px; padding-top: 10px; text-align: center; }\n#sidebar p.e85-blue { background-color: #0057B8; color: white; height: 32px; text-align: center; line-height: 32px; font-size: 24px; margin: 0; }\n#sidebar p.e85-yellow { background-color: #FFDD00; color: black; height: 32px; text-align: center; line-height: 32px; font-size: 24px; margin: 0; }\n";
+    var css_248z = "button.e85.e85-A {\n    background-color: #0f9;\n    margin-right: 2px\n}\n\nbutton.e85.e85-B {\n    background-color: #09f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-C {\n    background-color: #fdd;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-D {\n    background-color: #fbb;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-E {\n    background-color: #f99;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-F {\n    background-color: #f77;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-H {\n    background-color: #f9f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-H:disabled {\n    background-color: #ccc\n}\n\n.e85 legend {\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: bold;\n    width: auto;\n    text-align: right;\n    border: 0;\n    margin: 0;\n    padding: 0 8px;\n}\n\n.e85 fieldset {\n    border: 1px solid #ddd;\n    padding: 8px;\n}\n\n.e85 fieldset.e85 div.controls label {\n    white-space: normal;\n    font-weight: normal;\n    line-height: 32px;\n    font-size: 13px;\n}\n\n.e85 fieldset.e85 div.controls input[type=\"number\"] {\n    float: right;\n    width: 50px;\n    text-align: right;\n}\n\n.e85 .button-toolbar {\n    padding: 8px;\n}\n\np.e85-info {\n    border-top: 1px solid #ccc;\n    color: #777;\n    font-size: x-small;\n    margin-top: 15px;\n    padding-top: 10px;\n    text-align: center;\n}\n\n#sidebar p.e85-blue {\n    background-color: #0057B8;\n    color: white;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n\n#sidebar p.e85-yellow {\n    background-color: #FFDD00;\n    color: black;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n";
 
     WMEUI.addTranslation(NAME, TRANSLATION);
     WMEUI.addStyle(css_248z);
