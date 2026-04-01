@@ -42,7 +42,7 @@ export class E85 extends WMEBase {
         fieldset.addNumber(
           'settings-simplify-' + item,
           I18n.t(NAME).settings.simplify[item],
-          event => this.settings.set(['simplify', item], event.target.value),
+          event => this.settings.set(['simplify', item], Number(event.target.value)),
           this.settings.get('simplify', item),
           (item === 'angle') ? 150 : 0,
           (item === 'angle') ? 180 : 200,
@@ -63,7 +63,7 @@ export class E85 extends WMEBase {
         fieldsetButtons.addNumber(
           'settings-buttons-' + item,
           I18n.t(NAME).settings.buttons[item],
-          event => this.settings.set(['buttons', item], event.target.value),
+          event => this.settings.set(['buttons', item], Number(event.target.value)),
           this.settings.get('buttons', item),
           10,
           180,
@@ -81,7 +81,7 @@ export class E85 extends WMEBase {
     fieldsetDoglegs.addNumber(
       'settings-microdoglegs-maxdistance',
       I18n.t(NAME).settings.microDoglegs.maxDistance,
-      event => this.settings.set(['microDoglegs', 'maxDistance'], event.target.value),
+      event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)),
       this.settings.get('microDoglegs', 'maxDistance'),
       1, 20, 1
     )
@@ -89,7 +89,7 @@ export class E85 extends WMEBase {
     fieldsetDoglegs.addNumber(
       'settings-microdoglegs-mindistance',
       I18n.t(NAME).settings.microDoglegs.minDistance,
-      event => this.settings.set(['microDoglegs', 'minDistance'], event.target.value),
+      event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)),
       this.settings.get('microDoglegs', 'minDistance'),
       0, 20, 1
     )
