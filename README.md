@@ -41,10 +41,29 @@ Setup the buttons for change the angle between segments:
 
 ![Button's settings](buttons.png)
 
+## Development
+
+Source is TypeScript, built with Rollup into a single IIFE userscript.
+
+```bash
+npm install       # install dependencies
+npm run build     # build dist/WME-E85.user.js
+npm run watch     # rebuild on changes
+```
+
+Project structure:
+- `src/` — TypeScript source and CSS
+- `dist/` — built userscript (auto-committed by CI)
+- `src/meta.ts` — userscript header with `{{version}}` placeholder
+- `src/e85.ts` — main E85 class extending WMEBase
+
+External dependencies loaded via `@require` (not bundled):
+CommonUtils, GeoUtils, WME-Bootstrap, WME-Base, WME-UI
+
 ## Links
 
-Author homepage: https://anton.shevchuk.name/  
-Author pet projects: https://hohli.com/  
-Support author: https://donate.hohli.com/  
-Script homepage: https://github.com/AntonShevchuk/wme-e85/  
+Author homepage: https://anton.shevchuk.name/
+Author pet projects: https://hohli.com/
+Support author: https://donate.hohli.com/
+Script homepage: https://github.com/AntonShevchuk/wme-e85/
 GreasyFork: https://greasyfork.org/en/scripts/456490-wme-e85-simplify-street-geometry
