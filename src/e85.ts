@@ -2,22 +2,15 @@ import { NAME } from './translations'
 
 export class E85 extends WMEBase {
   buttons: any
-  helper: WMEUIHelper
 
   constructor (name, settings, buttons) {
     super(name, settings)
 
     this.buttons = buttons
 
-    this.initHelper()
-
     this.initTab()
 
     this.initShortcuts()
-  }
-
-  initHelper() {
-    this.helper = new WMEUIHelper(this.name)
   }
 
   /**
@@ -119,28 +112,8 @@ export class E85 extends WMEBase {
    * Initial shortcuts
    */
   initShortcuts () {
-    let shortcuts = [
-      {
-        description: I18n.t(NAME).description,
-        shortcutId: this.id,
-        shortcutKeys: 'A+E',
-        callback: () => this.simplifySelected()
-      },
-      {
-        description: I18n.t(NAME).description + ' [*]',
-        shortcutId: this.id + '-all',
-        shortcutKeys: 'A+Y',
-        callback: () => this.simplifyAll()
-      },
-    ]
-
-    for (let shortcut of shortcuts) {
-      if (this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: shortcut.shortcutKeys })) {
-        this.log('Shortcut already in use')
-        shortcut.shortcutKeys = null
-      }
-      this.wmeSDK.Shortcuts.createShortcut(shortcut);
-    }
+    this.createShortcut('simplify', I18n.t(NAME).description, 'A+E', () => this.simplifySelected())
+    this.createShortcut('all', I18n.t(NAME).description + ' [*]', 'A+Y', () => this.simplifyAll())
   }
 
   /**
@@ -149,7 +122,7 @@ export class E85 extends WMEBase {
   onSegment (event, element, model) {
     // Skip for blocked roads
     if (
-      this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
+      this.canEditSegment(model)
     ) {
       // Panel can be already exists
       let panel = this.helper.createPanel(I18n.t(this.name).title)
@@ -203,8 +176,7 @@ export class E85 extends WMEBase {
   onSegments (event, element, models) {
     // Skip for locked roads
     if (models.filter((model) =>
-        this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
-        && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
+        this.canEditSegment(model)
       ).length === 0
     ) {
       element.querySelector('div.form-group.e85')?.remove()
@@ -373,8 +345,7 @@ export class E85 extends WMEBase {
     let segments = this.getAllSegments()
 
     segments = segments.filter((model) =>
-      this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
-      && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
+      this.canEditSegment(model)
     )
 
     this.simplifyStreetGeometry(
