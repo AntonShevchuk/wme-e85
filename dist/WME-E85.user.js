@@ -210,7 +210,7 @@
             let simplify = this.settings.get('simplify');
             for (let item in simplify) {
                 if (simplify.hasOwnProperty(item)) {
-                    fieldset.addNumber('settings-simplify-' + item, WMEUI.t(NAME).settings.simplify[item], event => this.settings.set(['simplify', item], Number(event.target.value)), this.settings.get('simplify', item), (item === 'angle') ? 150 : 0, (item === 'angle') ? 180 : 200, 1);
+                    fieldset.addNumber('settings-simplify-' + item, WMEUI.t(NAME).settings.simplify[item], event => this.settings.set('simplify', item, Number(event.target.value)), this.settings.get('simplify', item), (item === 'angle') ? 150 : 0, (item === 'angle') ? 180 : 200, 1);
                 }
             }
             tab.addElement(fieldset);
@@ -220,16 +220,16 @@
             let settingsButtons = this.settings.get('buttons');
             for (let item in settingsButtons) {
                 if (settingsButtons.hasOwnProperty(item)) {
-                    fieldsetButtons.addNumber('settings-buttons-' + item, WMEUI.t(NAME).settings.buttons[item], event => this.settings.set(['buttons', item], Number(event.target.value)), this.settings.get('buttons', item), 0, 180, 5);
+                    fieldsetButtons.addNumber('settings-buttons-' + item, WMEUI.t(NAME).settings.buttons[item], event => this.settings.set('buttons', item, Number(event.target.value)), this.settings.get('buttons', item), 0, 180, 5);
                 }
             }
             tab.addElement(fieldsetButtons);
             // Micro doglegs settings
             let fieldsetDoglegs = this.helper.createFieldset(WMEUI.t(NAME).settings.microDoglegs.title);
             fieldsetDoglegs.addText('description', WMEUI.t(NAME).settings.microDoglegs.description);
-            fieldsetDoglegs.addCheckbox('settings-microdoglegs-enabled', WMEUI.t(NAME).settings.microDoglegs.enabled, event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked), this.settings.get('microDoglegs', 'enabled'));
-            fieldsetDoglegs.addNumber('settings-microdoglegs-maxdistance', WMEUI.t(NAME).settings.microDoglegs.maxDistance, event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'maxDistance'), 1, 20, 1);
-            fieldsetDoglegs.addNumber('settings-microdoglegs-mindistance', WMEUI.t(NAME).settings.microDoglegs.minDistance, event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'minDistance'), 0, 20, 1);
+            fieldsetDoglegs.addCheckbox('settings-microdoglegs-enabled', WMEUI.t(NAME).settings.microDoglegs.enabled, event => this.settings.set('microDoglegs', 'enabled', event.target.checked), this.settings.get('microDoglegs', 'enabled'));
+            fieldsetDoglegs.addNumber('settings-microdoglegs-maxdistance', WMEUI.t(NAME).settings.microDoglegs.maxDistance, event => this.settings.set('microDoglegs', 'maxDistance', Number(event.target.value)), this.settings.get('microDoglegs', 'maxDistance'), 1, 20, 1);
+            fieldsetDoglegs.addNumber('settings-microdoglegs-mindistance', WMEUI.t(NAME).settings.microDoglegs.minDistance, event => this.settings.set('microDoglegs', 'minDistance', Number(event.target.value)), this.settings.get('microDoglegs', 'minDistance'), 0, 20, 1);
             tab.addElement(fieldsetDoglegs);
             tab.addText('info', '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version);
             tab.addText('blue', 'made in');
