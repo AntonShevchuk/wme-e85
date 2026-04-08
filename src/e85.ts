@@ -158,7 +158,7 @@ export class E85 extends WMEBase {
         (straightenButton.html() as HTMLButtonElement).disabled = true
       }
 
-      const existingFormGroup = element.querySelector('div.form-group.e85');
+      const existingFormGroup = element.querySelector('div.wme-ui-panel.e85');
       if (existingFormGroup) {
         existingFormGroup.replaceWith(panel.html());
       } else {
@@ -166,7 +166,7 @@ export class E85 extends WMEBase {
       }
     } else {
       // Remove the panel
-      element.querySelector('div.form-group.e85')?.remove()
+      element.querySelector('div.wme-ui-panel.e85')?.remove()
     }
   }
 
@@ -179,7 +179,7 @@ export class E85 extends WMEBase {
         this.canEditSegment(model)
       ).length === 0
     ) {
-      element.querySelector('div.form-group.e85')?.remove()
+      element.querySelector('div.wme-ui-panel.e85')?.remove()
       return
     }
 
@@ -243,7 +243,7 @@ export class E85 extends WMEBase {
       }
     }
 
-    const existingFormGroup = element.querySelector('div.form-group.e85');
+    const existingFormGroup = element.querySelector('div.wme-ui-panel.e85');
     if (existingFormGroup) {
       existingFormGroup.replaceWith(panel.html());
     } else {

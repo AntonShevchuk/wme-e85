@@ -264,7 +264,7 @@
                     simplifyButton.html().disabled = true;
                     straightenButton.html().disabled = true;
                 }
-                const existingFormGroup = element.querySelector('div.form-group.e85');
+                const existingFormGroup = element.querySelector('div.wme-ui-panel.e85');
                 if (existingFormGroup) {
                     existingFormGroup.replaceWith(panel.html());
                 }
@@ -274,7 +274,7 @@
             }
             else {
                 // Remove the panel
-                element.querySelector('div.form-group.e85')?.remove();
+                element.querySelector('div.wme-ui-panel.e85')?.remove();
             }
         }
         /**
@@ -283,7 +283,7 @@
         onSegments(event, element, models) {
             // Skip for locked roads
             if (models.filter((model) => this.canEditSegment(model)).length === 0) {
-                element.querySelector('div.form-group.e85')?.remove();
+                element.querySelector('div.wme-ui-panel.e85')?.remove();
                 return;
             }
             let panel = this.helper.createPanel(WMEUI.t(NAME).title);
@@ -319,7 +319,7 @@
                     }
                 }
             }
-            const existingFormGroup = element.querySelector('div.form-group.e85');
+            const existingFormGroup = element.querySelector('div.wme-ui-panel.e85');
             if (existingFormGroup) {
                 existingFormGroup.replaceWith(panel.html());
             }
@@ -663,7 +663,7 @@
         }
     }
 
-    var css_248z = "button.e85.e85-A {\n    background-color: #0f9;\n    margin-right: 2px\n}\n\nbutton.e85.e85-B {\n    background-color: #09f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-C {\n    background-color: #fdd;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-D {\n    background-color: #fbb;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-E {\n    background-color: #f99;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-F {\n    background-color: #f77;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-G {\n    background-color: #f55;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-H {\n    background-color: #f33;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-I {\n    background-color: #e22;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-J {\n    background-color: #d11;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-K {\n    background-color: #c00;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-L {\n    background-color: #a00;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-M {\n    background-color: #f9f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled {\n    background-color: #ccc\n}\n\n.e85 legend {\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: bold;\n    width: auto;\n    text-align: right;\n    border: 0;\n    margin: 0;\n    padding: 0 8px;\n}\n\n.e85 fieldset {\n    border: 1px solid #ddd;\n    padding: 8px;\n}\n\n.e85 fieldset.e85 div.controls label {\n    white-space: normal;\n    font-weight: normal;\n    line-height: 32px;\n    font-size: 13px;\n}\n\n.e85 fieldset.e85 div.controls input[type=\"number\"] {\n    float: right;\n    width: 50px;\n    text-align: right;\n}\n\n.e85 .button-toolbar {\n    padding: 8px;\n}\n\np.e85-info {\n    border-top: 1px solid #ccc;\n    color: #777;\n    font-size: x-small;\n    margin-top: 15px;\n    padding-top: 10px;\n    text-align: center;\n}\n\n#sidebar p.e85-blue {\n    background-color: #0057B8;\n    color: white;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n\n#sidebar p.e85-yellow {\n    background-color: #FFDD00;\n    color: black;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n";
+    var css_248z = "button.e85.e85-A {\n    background-color: #0f9;\n    margin-right: 2px\n}\n\nbutton.e85.e85-B {\n    background-color: #09f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-C {\n    background-color: #fdd;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-D {\n    background-color: #fbb;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-E {\n    background-color: #f99;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-F {\n    background-color: #f77;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-G {\n    background-color: #f55;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0\n}\n\nbutton.e85.e85-H {\n    background-color: #f33;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-I {\n    background-color: #e22;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-J {\n    background-color: #d11;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-K {\n    background-color: #c00;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-L {\n    background-color: #a00;\n    width: 50px;\n    padding: 3px;\n    margin: 2px 2px 0 0;\n    color: #fff\n}\n\nbutton.e85.e85-M {\n    background-color: #f9f;\n    margin-right: 2px;\n    color: #fff\n}\n\nbutton.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled {\n    background-color: #ccc\n}\n\n.e85 legend {\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: bold;\n    width: auto;\n    text-align: right;\n    border: 0;\n    margin: 0;\n    padding: 0 8px;\n}\n\n.e85 fieldset {\n    border: 1px solid #ddd;\n    padding: 8px;\n}\n\n.e85 fieldset.e85 .wme-ui-fieldset-content label {\n    white-space: normal;\n    font-weight: normal;\n    line-height: 32px;\n    font-size: 13px;\n}\n\n.e85 fieldset.e85 .wme-ui-fieldset-content input[type=\"number\"] {\n    float: right;\n    width: 50px;\n    text-align: right;\n}\n\n.e85 .wme-ui-tab-content {\n    padding: 8px;\n}\n\np.e85-info {\n    border-top: 1px solid #ccc;\n    color: #777;\n    font-size: x-small;\n    margin-top: 15px;\n    padding-top: 10px;\n    text-align: center;\n}\n\n#sidebar p.e85-blue {\n    background-color: #0057B8;\n    color: white;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n\n#sidebar p.e85-yellow {\n    background-color: #FFDD00;\n    color: black;\n    height: 32px;\n    text-align: center;\n    line-height: 32px;\n    font-size: 24px;\n    margin: 0;\n}\n";
 
     $(document).on('bootstrap.wme', () => {
         WMEUI.addTranslation(NAME, TRANSLATION);

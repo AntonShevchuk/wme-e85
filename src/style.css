@@ -110,20 +110,20 @@ button.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled 
     padding: 8px;
 }
 
-.e85 fieldset.e85 div.controls label {
+.e85 fieldset.e85 .wme-ui-fieldset-content label {
     white-space: normal;
     font-weight: normal;
     line-height: 32px;
     font-size: 13px;
 }
 
-.e85 fieldset.e85 div.controls input[type="number"] {
+.e85 fieldset.e85 .wme-ui-fieldset-content input[type="number"] {
     float: right;
     width: 50px;
     text-align: right;
 }
 
-.e85 .button-toolbar {
+.e85 .wme-ui-tab-content {
     padding: 8px;
 }
 
