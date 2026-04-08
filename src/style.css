@@ -94,22 +94,6 @@ button.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled 
     background-color: #ccc
 }
 
-.e85 legend {
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-    width: auto;
-    text-align: right;
-    border: 0;
-    margin: 0;
-    padding: 0 8px;
-}
-
-.e85 fieldset {
-    border: 1px solid #ddd;
-    padding: 8px;
-}
-
 .e85 fieldset.e85 .wme-ui-fieldset-content label {
     white-space: normal;
     font-weight: normal;
