@@ -18,7 +18,7 @@ export class E85 extends WMEBase {
    */
   initTab () {
     let tab = this.helper.createTab(
-      I18n.t(this.name).title,
+      WMEUI.t(NAME).title,
       {
         sidebar: this.wmeSDK.Sidebar,
         image: GM_info.script.icon
@@ -26,15 +26,15 @@ export class E85 extends WMEBase {
     )
 
     // Setup options for the script
-    let fieldset = this.helper.createFieldset(I18n.t(NAME).settings.simplify.title)
-    fieldset.addText('description', I18n.t(NAME).settings.simplify.description)
+    let fieldset = this.helper.createFieldset(WMEUI.t(NAME).settings.simplify.title)
+    fieldset.addText('description', WMEUI.t(NAME).settings.simplify.description)
 
     let simplify = this.settings.get('simplify')
     for (let item in simplify) {
       if (simplify.hasOwnProperty(item)) {
         fieldset.addNumber(
           'settings-simplify-' + item,
-          I18n.t(NAME).settings.simplify[item],
+          WMEUI.t(NAME).settings.simplify[item],
           event => this.settings.set(['simplify', item], Number(event.target.value)),
           this.settings.get('simplify', item),
           (item === 'angle') ? 150 : 0,
@@ -47,15 +47,15 @@ export class E85 extends WMEBase {
     tab.addElement(fieldset)
 
     // Setup options for the script
-    let fieldsetButtons = this.helper.createFieldset(I18n.t(NAME).settings.buttons.title)
-    fieldsetButtons.addText('description', I18n.t(NAME).settings.buttons.description)
+    let fieldsetButtons = this.helper.createFieldset(WMEUI.t(NAME).settings.buttons.title)
+    fieldsetButtons.addText('description', WMEUI.t(NAME).settings.buttons.description)
 
     let settingsButtons = this.settings.get('buttons')
     for (let item in settingsButtons) {
       if (settingsButtons.hasOwnProperty(item)) {
         fieldsetButtons.addNumber(
           'settings-buttons-' + item,
-          I18n.t(NAME).settings.buttons[item],
+          WMEUI.t(NAME).settings.buttons[item],
           event => this.settings.set(['buttons', item], Number(event.target.value)),
           this.settings.get('buttons', item),
           0,
@@ -68,19 +68,19 @@ export class E85 extends WMEBase {
     tab.addElement(fieldsetButtons)
 
     // Micro doglegs settings
-    let fieldsetDoglegs = this.helper.createFieldset(I18n.t(NAME).settings.microDoglegs.title)
-    fieldsetDoglegs.addText('description', I18n.t(NAME).settings.microDoglegs.description)
+    let fieldsetDoglegs = this.helper.createFieldset(WMEUI.t(NAME).settings.microDoglegs.title)
+    fieldsetDoglegs.addText('description', WMEUI.t(NAME).settings.microDoglegs.description)
 
     fieldsetDoglegs.addCheckbox(
       'settings-microdoglegs-enabled',
-      I18n.t(NAME).settings.microDoglegs.enabled,
+      WMEUI.t(NAME).settings.microDoglegs.enabled,
       event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked),
       this.settings.get('microDoglegs', 'enabled')
     )
 
     fieldsetDoglegs.addNumber(
       'settings-microdoglegs-maxdistance',
-      I18n.t(NAME).settings.microDoglegs.maxDistance,
+      WMEUI.t(NAME).settings.microDoglegs.maxDistance,
       event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)),
       this.settings.get('microDoglegs', 'maxDistance'),
       1, 20, 1
@@ -88,7 +88,7 @@ export class E85 extends WMEBase {
 
     fieldsetDoglegs.addNumber(
       'settings-microdoglegs-mindistance',
-      I18n.t(NAME).settings.microDoglegs.minDistance,
+      WMEUI.t(NAME).settings.microDoglegs.minDistance,
       event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)),
       this.settings.get('microDoglegs', 'minDistance'),
       0, 20, 1
@@ -112,8 +112,8 @@ export class E85 extends WMEBase {
    * Initial shortcuts
    */
   initShortcuts () {
-    this.createShortcut('simplify', I18n.t(NAME).description, 'A+E', () => this.simplifySelected())
-    this.createShortcut('all', I18n.t(NAME).description + ' [*]', 'A+Y', () => this.simplifyAll())
+    this.createShortcut('simplify', WMEUI.t(NAME).description, 'A+E', () => this.simplifySelected())
+    this.createShortcut('all', WMEUI.t(NAME).description + ' [*]', 'A+Y', () => this.simplifyAll())
   }
 
   /**
@@ -125,7 +125,7 @@ export class E85 extends WMEBase {
       this.canEditSegment(model)
     ) {
       // Panel can be already exists
-      let panel = this.helper.createPanel(I18n.t(this.name).title)
+      let panel = this.helper.createPanel(WMEUI.t(NAME).title)
 
       let simplifyButton = panel.addButton(
         'A',
@@ -183,7 +183,7 @@ export class E85 extends WMEBase {
       return
     }
 
-    let panel = this.helper.createPanel(I18n.t(this.name).title)
+    let panel = this.helper.createPanel(WMEUI.t(NAME).title)
     let simplifyButton = panel.addButton(
       'A',
       this.buttons.A.title,

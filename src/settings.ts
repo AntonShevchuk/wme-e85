@@ -3,18 +3,18 @@ import { NAME } from './translations'
 export function getButtons () {
   return {
     A: {
-      title: I18n.t(NAME).buttons.A,
-      description: I18n.t(NAME).buttons.A,
+      title: WMEUI.t(NAME).buttons.A,
+      description: WMEUI.t(NAME).buttons.A,
       shortcut: null,
     },
     B: {
-      title: I18n.t(NAME).buttons.B,
-      description: I18n.t(NAME).buttons.B,
+      title: WMEUI.t(NAME).buttons.B,
+      description: WMEUI.t(NAME).buttons.B,
       shortcut: null,
     },
     M: {
-      title: I18n.t(NAME).buttons.M,
-      description: I18n.t(NAME).buttons.M,
+      title: WMEUI.t(NAME).buttons.M,
+      description: WMEUI.t(NAME).buttons.M,
       shortcut: null,
     },
   }

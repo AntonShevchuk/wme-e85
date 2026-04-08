@@ -148,18 +148,18 @@
     function getButtons() {
         return {
             A: {
-                title: I18n.t(NAME).buttons.A,
-                description: I18n.t(NAME).buttons.A,
+                title: WMEUI.t(NAME).buttons.A,
+                description: WMEUI.t(NAME).buttons.A,
                 shortcut: null,
             },
             B: {
-                title: I18n.t(NAME).buttons.B,
-                description: I18n.t(NAME).buttons.B,
+                title: WMEUI.t(NAME).buttons.B,
+                description: WMEUI.t(NAME).buttons.B,
                 shortcut: null,
             },
             M: {
-                title: I18n.t(NAME).buttons.M,
-                description: I18n.t(NAME).buttons.M,
+                title: WMEUI.t(NAME).buttons.M,
+                description: WMEUI.t(NAME).buttons.M,
                 shortcut: null,
             },
         };
@@ -200,36 +200,36 @@
          * Initial UI elements
          */
         initTab() {
-            let tab = this.helper.createTab(I18n.t(this.name).title, {
+            let tab = this.helper.createTab(WMEUI.t(NAME).title, {
                 sidebar: this.wmeSDK.Sidebar,
                 image: GM_info.script.icon
             });
             // Setup options for the script
-            let fieldset = this.helper.createFieldset(I18n.t(NAME).settings.simplify.title);
-            fieldset.addText('description', I18n.t(NAME).settings.simplify.description);
+            let fieldset = this.helper.createFieldset(WMEUI.t(NAME).settings.simplify.title);
+            fieldset.addText('description', WMEUI.t(NAME).settings.simplify.description);
             let simplify = this.settings.get('simplify');
             for (let item in simplify) {
                 if (simplify.hasOwnProperty(item)) {
-                    fieldset.addNumber('settings-simplify-' + item, I18n.t(NAME).settings.simplify[item], event => this.settings.set(['simplify', item], Number(event.target.value)), this.settings.get('simplify', item), (item === 'angle') ? 150 : 0, (item === 'angle') ? 180 : 200, 1);
+                    fieldset.addNumber('settings-simplify-' + item, WMEUI.t(NAME).settings.simplify[item], event => this.settings.set(['simplify', item], Number(event.target.value)), this.settings.get('simplify', item), (item === 'angle') ? 150 : 0, (item === 'angle') ? 180 : 200, 1);
                 }
             }
             tab.addElement(fieldset);
             // Setup options for the script
-            let fieldsetButtons = this.helper.createFieldset(I18n.t(NAME).settings.buttons.title);
-            fieldsetButtons.addText('description', I18n.t(NAME).settings.buttons.description);
+            let fieldsetButtons = this.helper.createFieldset(WMEUI.t(NAME).settings.buttons.title);
+            fieldsetButtons.addText('description', WMEUI.t(NAME).settings.buttons.description);
             let settingsButtons = this.settings.get('buttons');
             for (let item in settingsButtons) {
                 if (settingsButtons.hasOwnProperty(item)) {
-                    fieldsetButtons.addNumber('settings-buttons-' + item, I18n.t(NAME).settings.buttons[item], event => this.settings.set(['buttons', item], Number(event.target.value)), this.settings.get('buttons', item), 0, 180, 5);
+                    fieldsetButtons.addNumber('settings-buttons-' + item, WMEUI.t(NAME).settings.buttons[item], event => this.settings.set(['buttons', item], Number(event.target.value)), this.settings.get('buttons', item), 0, 180, 5);
                 }
             }
             tab.addElement(fieldsetButtons);
             // Micro doglegs settings
-            let fieldsetDoglegs = this.helper.createFieldset(I18n.t(NAME).settings.microDoglegs.title);
-            fieldsetDoglegs.addText('description', I18n.t(NAME).settings.microDoglegs.description);
-            fieldsetDoglegs.addCheckbox('settings-microdoglegs-enabled', I18n.t(NAME).settings.microDoglegs.enabled, event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked), this.settings.get('microDoglegs', 'enabled'));
-            fieldsetDoglegs.addNumber('settings-microdoglegs-maxdistance', I18n.t(NAME).settings.microDoglegs.maxDistance, event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'maxDistance'), 1, 20, 1);
-            fieldsetDoglegs.addNumber('settings-microdoglegs-mindistance', I18n.t(NAME).settings.microDoglegs.minDistance, event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'minDistance'), 0, 20, 1);
+            let fieldsetDoglegs = this.helper.createFieldset(WMEUI.t(NAME).settings.microDoglegs.title);
+            fieldsetDoglegs.addText('description', WMEUI.t(NAME).settings.microDoglegs.description);
+            fieldsetDoglegs.addCheckbox('settings-microdoglegs-enabled', WMEUI.t(NAME).settings.microDoglegs.enabled, event => this.settings.set(['microDoglegs', 'enabled'], event.target.checked), this.settings.get('microDoglegs', 'enabled'));
+            fieldsetDoglegs.addNumber('settings-microdoglegs-maxdistance', WMEUI.t(NAME).settings.microDoglegs.maxDistance, event => this.settings.set(['microDoglegs', 'maxDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'maxDistance'), 1, 20, 1);
+            fieldsetDoglegs.addNumber('settings-microdoglegs-mindistance', WMEUI.t(NAME).settings.microDoglegs.minDistance, event => this.settings.set(['microDoglegs', 'minDistance'], Number(event.target.value)), this.settings.get('microDoglegs', 'minDistance'), 0, 20, 1);
             tab.addElement(fieldsetDoglegs);
             tab.addText('info', '<a href="' + GM_info.scriptUpdateURL + '">' + GM_info.script.name + '</a> ' + GM_info.script.version);
             tab.addText('blue', 'made in');
@@ -241,8 +241,8 @@
          * Initial shortcuts
          */
         initShortcuts() {
-            this.createShortcut('simplify', I18n.t(NAME).description, 'A+E', () => this.simplifySelected());
-            this.createShortcut('all', I18n.t(NAME).description + ' [*]', 'A+Y', () => this.simplifyAll());
+            this.createShortcut('simplify', WMEUI.t(NAME).description, 'A+E', () => this.simplifySelected());
+            this.createShortcut('all', WMEUI.t(NAME).description + ' [*]', 'A+Y', () => this.simplifyAll());
         }
         /**
          * Handler for `segment.wme` event
@@ -251,7 +251,7 @@
             // Skip for blocked roads
             if (this.canEditSegment(model)) {
                 // Panel can be already exists
-                let panel = this.helper.createPanel(I18n.t(this.name).title);
+                let panel = this.helper.createPanel(WMEUI.t(NAME).title);
                 let simplifyButton = panel.addButton('A', this.buttons.A.title, this.buttons.A.description, () => this.simplifySegmentGeometry(model));
                 let straightenButton = panel.addButton('B', this.buttons.B.title, this.buttons.B.description, () => this.straightenSegmentGeometry(model));
                 if (this.settings.get('microDoglegs', 'enabled')) {
@@ -286,7 +286,7 @@
                 element.querySelector('div.form-group.e85')?.remove();
                 return;
             }
-            let panel = this.helper.createPanel(I18n.t(this.name).title);
+            let panel = this.helper.createPanel(WMEUI.t(NAME).title);
             let simplifyButton = panel.addButton('A', this.buttons.A.title, this.buttons.A.description, () => this.simplifyStreetGeometry(models));
             // Don't straighten multiple components
             panel.addButton('B', this.buttons.B.title, this.buttons.B.description, () => this.straightenStreetGeometry(models));
