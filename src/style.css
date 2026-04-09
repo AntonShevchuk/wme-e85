@@ -1,11 +1,13 @@
 button.e85.e85-A {
     background-color: #0f9;
-    margin-right: 2px
+    margin-right: 2px;
+    margin-bottom: 4px;
 }
 
 button.e85.e85-B {
     background-color: #09f;
     margin-right: 2px;
+    margin-bottom: 4px;
     color: #fff
 }
 
@@ -90,25 +92,14 @@ button.e85.e85-M {
     color: #fff
 }
 
-button.e85.e85-A:disabled, button.e85.e85-B:disabled, button.e85.e85-M:disabled {
+button.e85:disabled {
     background-color: #ccc
-}
-
-.e85 fieldset.e85 .wme-ui-fieldset-content label {
-    white-space: normal;
-    font-weight: normal;
-    line-height: 32px;
-    font-size: 13px;
 }
 
 .e85 fieldset.e85 .wme-ui-fieldset-content input[type="number"] {
     float: right;
     width: 50px;
     text-align: right;
-}
-
-.e85 .wme-ui-tab-content {
-    padding: 8px;
 }
 
 p.e85-info {

@@ -1,4 +1,33 @@
-import { NAME } from './translations'
+import { NAME } from './name'
+
+const PREVIEW_LAYER = 'E85: Preview'
+
+const PREVIEW_STYLE = {
+  styleContext: {},
+  styleRules: [
+    {
+      predicate: (properties: any) => properties.styleName === 'preview-border',
+      style: {
+        stroke: true,
+        strokeColor: '#ffffff',
+        strokeLinecap: 'round',
+        strokeOpacity: 0.8,
+        strokeWidth: 8,
+      },
+    },
+    {
+      predicate: (properties: any) => properties.styleName === 'preview',
+      style: {
+        stroke: true,
+        strokeColor: '#ff2424',
+        strokeDashstyle: 'dash',
+        strokeLinecap: 'round',
+        strokeOpacity: 0.8,
+        strokeWidth: 4,
+      },
+    },
+  ],
+}
 
 export class E85 extends WMEBase {
   buttons: any
@@ -9,7 +38,7 @@ export class E85 extends WMEBase {
     this.buttons = buttons
 
     this.initTab()
-
+    this.initPreviewLayer()
     this.initShortcuts()
   }
 
@@ -143,7 +172,7 @@ export class E85 extends WMEBase {
 
       if (this.settings.get('microDoglegs', 'enabled')) {
         let doglegButton = panel.addButton(
-          'H',
+          'M',
           this.buttons.M.title,
           this.buttons.M.description,
           () => this.removeMicroDoglegs(model),
@@ -201,9 +230,9 @@ export class E85 extends WMEBase {
 
     if (this.settings.get('microDoglegs', 'enabled')) {
       panel.addButton(
-        'H',
-        this.buttons.H.title,
-        this.buttons.H.description,
+        'M',
+        this.buttons.M.title,
+        this.buttons.M.description,
         () => this.removeMicroDoglegsMultiple(models)
       )
     }
@@ -232,12 +261,15 @@ export class E85 extends WMEBase {
           if (settingsButtons.hasOwnProperty(key)) {
             let angle = Number(settingsButtons[key])
             if (angle === 0) continue
-            panel.addButton(
+            let btn = panel.addButton(
               key,
               `\u2221${angle}\u00B0`,
               `\u2221${angle}\u00B0`,
               () => this.alignStreetGeometry(first, second, angle),
             )
+            let el = btn.html()
+            el.addEventListener('mouseenter', () => this.showPreview(first, second, angle))
+            el.addEventListener('mouseleave', () => this.clearPreview())
           }
         }
       }
@@ -457,83 +489,47 @@ export class E85 extends WMEBase {
 
 
   /**
-   * Align two segments by angle
+   * Initialize the preview layer for angle alignment
    */
-  alignStreetGeometry (first, second, angle = 90) {
-    this.log('align street geometry \u2221' + angle + '\u00B0')
+  initPreviewLayer () {
+    this.wmeSDK.Map.addLayer({
+      layerName: PREVIEW_LAYER,
+      styleRules: PREVIEW_STYLE.styleRules,
+      styleContext: PREVIEW_STYLE.styleContext,
+      zIndex: 1800,
+    })
+    this.wmeSDK.Map.setLayerVisibility({ layerName: PREVIEW_LAYER, visibility: true })
+  }
 
-    function getCoordinatesFromComponent(segment, position) {
-      let pos = 0
-      switch (position) {
-        case 'first':
-          pos = 0
-          break
-        case 'second':
-          pos = 1
-          break
-        case 'next-to-last':
-          pos = segment.geometry.coordinates.length - 2
-          break
-        case 'last':
-          pos = segment.geometry.coordinates.length - 1
-          break
-      }
-      return [
-        segment.geometry.coordinates[pos][0],
-        segment.geometry.coordinates[pos][1],
-      ]
-    }
-
-    let A, B, C, commonNode
+  /**
+   * Compute the new intersection point for angle alignment (without applying)
+   */
+  computeAlignment (first, second, angle): number[] | null {
+    let A, B, C
 
     if (first.toNodeId === second.fromNodeId) {
-      this.log('A \u2192 B \u2192 C')
-      commonNode = this.wmeSDK.DataModel.Nodes.getById( { nodeId: first.toNodeId } )
-
-      A = getCoordinatesFromComponent(first, 'next-to-last')
-      B = getCoordinatesFromComponent(first, 'last')
-      C = getCoordinatesFromComponent(second, 'second')
+      A = this.getCoord(first, 'next-to-last')
+      B = this.getCoord(first, 'last')
+      C = this.getCoord(second, 'second')
     } else if (first.fromNodeId === second.fromNodeId) {
-      this.log('B \u2190 A \u2192 C')
-      commonNode = this.wmeSDK.DataModel.Nodes.getById( { nodeId: first.fromNodeId } )
-
-      A = getCoordinatesFromComponent(first, 'second')
-      B = getCoordinatesFromComponent(first, 'first')
-      C = getCoordinatesFromComponent(second, 'second')
+      A = this.getCoord(first, 'second')
+      B = this.getCoord(first, 'first')
+      C = this.getCoord(second, 'second')
     } else if (first.toNodeId === second.toNodeId) {
-      this.log('A \u2192 B \u2190 C')
-      commonNode = this.wmeSDK.DataModel.Nodes.getById( { nodeId: first.toNodeId } )
-
-      A = getCoordinatesFromComponent(first, 'next-to-last')
-      B = getCoordinatesFromComponent(first, 'last')
-      C = getCoordinatesFromComponent(second, 'next-to-last')
+      A = this.getCoord(first, 'next-to-last')
+      B = this.getCoord(first, 'last')
+      C = this.getCoord(second, 'next-to-last')
     } else if (first.fromNodeId === second.toNodeId) {
-      this.log('B \u2190 A \u2190 C')
-      commonNode = this.wmeSDK.DataModel.Nodes.getById( { nodeId: first.fromNodeId } )
-
-      A = getCoordinatesFromComponent(first, 'second')
-      B = getCoordinatesFromComponent(first, 'first')
-      C = getCoordinatesFromComponent(second, 'next-to-last')
+      A = this.getCoord(first, 'second')
+      B = this.getCoord(first, 'first')
+      C = this.getCoord(second, 'next-to-last')
+    } else {
+      return null
     }
 
-    if (!commonNode) {
-      this.log('segments does not have common node')
-      return
-    }
-
-    this.log('common node coords [' + B[0] + ';' + B[1] + ']')
-    this.log('current angle is ' + GeoUtils.findAngle(A, B, C) + '\u00B0')
-
-    let intersection
-
-    // For 180
     if (Number(angle) === 180) {
       let current = GeoUtils.findAngle(A, B, C)
-
-      if (180 === Math.round(current)) {
-        this.log('current angle is already ~180\u00B0, skipped')
-        return
-      }
+      if (180 === Math.round(current)) return null
 
       let distAB = GeoUtils.getAngularDistance(A, B)
       let distBC = GeoUtils.getAngularDistance(B, C)
@@ -548,20 +544,110 @@ export class E85 extends WMEBase {
         distance = distBC
       }
 
-      let bearing = GeoUtils.getBearing(A, C)
-
-      intersection = GeoUtils.getDestination(A, bearing, distance);
-    } else {
-      intersection = GeoUtils.findIntersection(A, B, C, angle);
+      return GeoUtils.getDestination(A, GeoUtils.getBearing(A, C), distance)
     }
 
+    return GeoUtils.findIntersection(A, B, C, angle)
+  }
+
+  /**
+   * Get coordinates from a segment at a given position
+   */
+  getCoord (segment, position: string): number[] {
+    let pos = 0
+    switch (position) {
+      case 'first': pos = 0; break
+      case 'second': pos = 1; break
+      case 'next-to-last': pos = segment.geometry.coordinates.length - 2; break
+      case 'last': pos = segment.geometry.coordinates.length - 1; break
+    }
+    return [
+      segment.geometry.coordinates[pos][0],
+      segment.geometry.coordinates[pos][1],
+    ]
+  }
+
+  /**
+   * Build preview geometry for two segments with a new common node position
+   */
+  showPreview (first, second, angle) {
+    this.clearPreview()
+
+    let intersection = this.computeAlignment(first, second, angle)
+    if (!intersection) return
+
+    // Build preview lines through the new intersection point
+    let firstCoords = structuredClone(first.geometry.coordinates)
+    let secondCoords = structuredClone(second.geometry.coordinates)
+
+    // Replace the common node coordinate in cloned geometries
+    if (first.toNodeId === second.fromNodeId) {
+      firstCoords[firstCoords.length - 1] = intersection
+      secondCoords[0] = intersection
+    } else if (first.fromNodeId === second.fromNodeId) {
+      firstCoords[0] = intersection
+      secondCoords[0] = intersection
+    } else if (first.toNodeId === second.toNodeId) {
+      firstCoords[firstCoords.length - 1] = intersection
+      secondCoords[secondCoords.length - 1] = intersection
+    } else if (first.fromNodeId === second.toNodeId) {
+      firstCoords[0] = intersection
+      secondCoords[secondCoords.length - 1] = intersection
+    }
+
+    // Border (thicker solid line behind)
+    let border1 = turf.lineString(firstCoords, { styleName: 'preview-border' }, { id: 'preview-b1' })
+    let border2 = turf.lineString(secondCoords, { styleName: 'preview-border' }, { id: 'preview-b2' })
+    // Foreground (dashed line on top)
+    let feature1 = turf.lineString(firstCoords, { styleName: 'preview' }, { id: 'preview-1' })
+    let feature2 = turf.lineString(secondCoords, { styleName: 'preview' }, { id: 'preview-2' })
+
+    this.wmeSDK.Map.addFeatureToLayer({ layerName: PREVIEW_LAYER, feature: border1 })
+    this.wmeSDK.Map.addFeatureToLayer({ layerName: PREVIEW_LAYER, feature: border2 })
+    this.wmeSDK.Map.addFeatureToLayer({ layerName: PREVIEW_LAYER, feature: feature1 })
+    this.wmeSDK.Map.addFeatureToLayer({ layerName: PREVIEW_LAYER, feature: feature2 })
+  }
+
+  /**
+   * Remove preview features from the layer
+   */
+  clearPreview () {
+    const ids = ['preview-b1', 'preview-b2', 'preview-1', 'preview-2']
+    for (let id of ids) {
+      try {
+        this.wmeSDK.Map.removeFeatureFromLayer({ layerName: PREVIEW_LAYER, featureId: id })
+      } catch (e) {}
+    }
+  }
+
+  /**
+   * Align two segments by angle
+   */
+  alignStreetGeometry (first, second, angle = 90) {
+    this.clearPreview()
+    this.log('align street geometry \u2221' + angle + '\u00B0')
+
+    let commonNodeId
+    if (first.toNodeId === second.fromNodeId || first.toNodeId === second.toNodeId) {
+      commonNodeId = first.toNodeId
+    } else if (first.fromNodeId === second.fromNodeId || first.fromNodeId === second.toNodeId) {
+      commonNodeId = first.fromNodeId
+    }
+
+    if (!commonNodeId) {
+      this.log('segments does not have common node')
+      return
+    }
+
+    let intersection = this.computeAlignment(first, second, angle)
     if (!intersection) {
       this.log('intersection not found')
       return
     }
 
-    this.log('point of the intersection is [' + intersection[0] + ', ' + intersection[1] +']')
-    this.log('new angle is ' + GeoUtils.findAngle(A, intersection, C) + '\u00B0')
+    let commonNode = this.wmeSDK.DataModel.Nodes.getById({ nodeId: commonNodeId })
+
+    this.log('point of the intersection is [' + intersection[0] + ', ' + intersection[1] + ']')
 
     commonNode.geometry.coordinates = intersection
 

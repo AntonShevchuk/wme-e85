@@ -1,5 +1,3 @@
-export const NAME = 'E85'
-
 export const TRANSLATION = {
   'en': {
     title: 'Street Geometry',
