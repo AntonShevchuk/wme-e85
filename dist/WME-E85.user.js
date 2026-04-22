@@ -2,7 +2,7 @@
 // @name         WME E85 Simplify Street Geometry
 // @name:uk      WME 🇺🇦 E85 Simplify Street Geometry
 // @name:ru      WME 🇺🇦 E85 Simplify Street Geometry
-// @version      0.6.0
+// @version      0.6.1
 // @description  Simplify Street Geometry, looks like fork
 // @description:uk Спрощуємо та вирівнюємо геометрію вулиць
 // @description:ru Упрощаем и выравниваем геометрию улиц
@@ -19,7 +19,7 @@
 // @require      https://update.greasyfork.org/scripts/571719/1793257/GeoUtils.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js
 // @require      https://update.greasyfork.org/scripts/450160/1792042/WME-Bootstrap.js
-// @require      https://update.greasyfork.org/scripts/450221/1793261/WME-Base.js
+// @require      https://update.greasyfork.org/scripts/450221/1804989/WME-Base.js
 // @require      https://update.greasyfork.org/scripts/450320/1796236/WME-UI.js
 // ==/UserScript==
 (function () {
